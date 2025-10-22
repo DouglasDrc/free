@@ -20,10 +20,12 @@ const VideoCall = () => {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const [callRate, setCallRate] = useState(150);
+  const [remoteUserConnected, setRemoteUserConnected] = useState(false);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const startTimeRef = useRef(Date.now());
   const durationIntervalRef = useRef(null);
+  const hasEndedRef = useRef(false);
 
   useEffect(() => {
     fetchSession();
