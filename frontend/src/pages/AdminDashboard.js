@@ -116,7 +116,9 @@ const AdminDashboard = () => {
         call_rate: 150,
         hobbies: '',
         age: 0,
-        location: 'India'
+        location: 'India',
+        phone: '',
+        gender: ''
       });
       fetchUsers();
       fetchTherapists();
