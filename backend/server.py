@@ -681,6 +681,33 @@ async def admin_create_therapist(
     
     return {"message": "Therapist created successfully", "user_id": user_id}
 
+@api_router.patch("/admin/therapists/{therapist_id}")
+async def admin_update_therapist(
+    therapist_id: str,
+    update_data: TherapistUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if therapist exists
+    existing = await db.therapists.find_one({"user_id": therapist_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Therapist not found")
+    
+    # Build update document with only provided fields
+    update_doc = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    
+    if not update_doc:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    await db.therapists.update_one(
+        {"user_id": therapist_id},
+        {"$set": update_doc}
+    )
+    
+    return {"message": "Therapist updated successfully"}
+
 @api_router.delete("/admin/users/{user_id}")
 async def admin_delete_user(user_id: str, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":
