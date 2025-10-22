@@ -59,9 +59,8 @@ class MindConnectAPITester:
         success, response = self.run_test(
             "Admin Login",
             "POST",
-            "auth/login",
-            200,
-            data={"email": "admin@mindconnect.com", "password": "admin123"}
+            "auth/login?email=admin@mindconnect.com&password=admin123",
+            200
         )
         if success and 'access_token' in response:
             self.admin_token = response['access_token']
