@@ -103,18 +103,10 @@ const Register = () => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="role">Register as</Label>
-              <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
-                <SelectTrigger data-testid="register-role-select" className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="client">Client (Seeking Therapy)</SelectItem>
-                  <SelectItem value="therapist">Therapist (Provide Therapy)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <input type="hidden" name="role" value="client" />
+            <p className="text-sm text-gray-600 bg-teal-50 p-3 rounded-lg">
+              <strong>Note:</strong> You are registering as a Client. Therapist accounts are created by administrators only.
+            </p>
 
             <Button 
               type="submit" 
