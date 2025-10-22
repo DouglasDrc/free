@@ -43,6 +43,23 @@ const VideoCall = () => {
     };
   }, []);
 
+  // Play local video when track is ready
+  useEffect(() => {
+    if (localVideoTrack && localVideoRef.current) {
+      localVideoTrack.play(localVideoRef.current);
+    }
+  }, [localVideoTrack]);
+
+  // Play remote video when users join
+  useEffect(() => {
+    if (remoteVideoRef.current && Object.keys(remoteUsers).length > 0) {
+      const remoteUser = Object.values(remoteUsers)[0];
+      if (remoteUser && remoteUser.videoTrack) {
+        remoteUser.videoTrack.play(remoteVideoRef.current);
+      }
+    }
+  }, [remoteUsers]);
+
   const fetchSession = async () => {
     try {
       const token = localStorage.getItem('token');
