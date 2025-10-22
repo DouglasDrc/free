@@ -118,80 +118,21 @@ const TherapistDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center p-6">
         <Card className="w-full max-w-2xl">
           <CardHeader>
-            <CardTitle className="text-2xl">Complete Your Therapist Profile</CardTitle>
+            <CardTitle className="text-2xl">Profile Not Found</CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCreateProfile} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Specializations (comma-separated)</label>
-                <Input
-                  value={profileForm.specialization}
-                  onChange={(e) => setProfileForm({...profileForm, specialization: e.target.value})}
-                  data-testid="therapist-specialization-input"
-                  placeholder="Anxiety, Depression, Relationships"
-                  required
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Years of Experience</label>
-                <Input
-                  type="number"
-                  value={profileForm.experience}
-                  onChange={(e) => setProfileForm({...profileForm, experience: Number(e.target.value)})}
-                  data-testid="therapist-experience-input"
-                  required
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Languages (comma-separated)</label>
-                <Input
-                  value={profileForm.languages}
-                  onChange={(e) => setProfileForm({...profileForm, languages: e.target.value})}
-                  data-testid="therapist-languages-input"
-                  placeholder="English, Spanish"
-                  required
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Bio</label>
-                <Textarea
-                  value={profileForm.bio}
-                  onChange={(e) => setProfileForm({...profileForm, bio: e.target.value})}
-                  data-testid="therapist-bio-input"
-                  placeholder="Tell clients about yourself..."
-                  required
-                  className="mt-2"
-                  rows={4}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Photo URL</label>
-                <Input
-                  value={profileForm.photo}
-                  onChange={(e) => setProfileForm({...profileForm, photo: e.target.value})}
-                  data-testid="therapist-photo-input"
-                  placeholder="https://..."
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Rate (coins per minute)</label>
-                <Input
-                  type="number"
-                  value={profileForm.hourly_rate}
-                  onChange={(e) => setProfileForm({...profileForm, hourly_rate: Number(e.target.value)})}
-                  data-testid="therapist-rate-input"
-                  required
-                  className="mt-2"
-                />
-              </div>
-              <Button type="submit" data-testid="therapist-profile-submit-btn" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-                Create Profile
-              </Button>
-            </form>
+          <CardContent className="text-center py-8">
+            <p className="text-gray-600 mb-6">
+              Your therapist profile has not been created yet. Please contact the administrator to set up your profile.
+            </p>
+            <Button 
+              onClick={() => {
+                localStorage.removeItem('token');
+                navigate('/login');
+              }}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+            >
+              Back to Login
+            </Button>
           </CardContent>
         </Card>
       </div>
