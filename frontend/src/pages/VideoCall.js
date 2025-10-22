@@ -321,6 +321,9 @@ const VideoCall = () => {
         <p className="text-3xl font-bold" data-testid="call-duration">{formatDuration(callDuration)}</p>
         <p className="text-sm mt-2 opacity-75">Rate: {callRate} coins/min</p>
         <p className="text-sm opacity-75">Cost: {Math.ceil(callDuration / 60) * callRate} coins</p>
+        {!remoteUserConnected && (
+          <p className="text-sm mt-2 text-yellow-400 animate-pulse">⏳ Waiting for other person...</p>
+        )}
       </div>
 
       {/* Controls */}
