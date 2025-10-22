@@ -8,6 +8,8 @@ import ClientDashboard from './pages/ClientDashboard';
 import TherapistDashboard from './pages/TherapistDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import VideoCall from './pages/VideoCall';
+import FAQ from './pages/FAQ';
+import Support from './pages/Support';
 import './App.css';
 
 function App() {
