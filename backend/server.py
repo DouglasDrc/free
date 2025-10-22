@@ -60,8 +60,12 @@ class TherapistProfile(BaseModel):
     languages: List[str]
     bio: str
     photo: str
-    hourly_rate: int  # coins per minute (typically 100)
-    is_online: bool = False
+    chat_rate: int = 100  # coins per minute for chat
+    call_rate: int = 150  # coins per minute for calls
+    status: str = "offline"  # online, offline, busy
+    hobbies: List[str] = []
+    age: Optional[int] = None
+    location: str = "India"
     rating: float = 0.0
     total_sessions: int = 0
 
