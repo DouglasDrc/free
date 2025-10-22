@@ -178,15 +178,22 @@ const VideoCall = () => {
 
   const cleanupAgora = async () => {
     try {
+      // Stop and close local tracks
       if (localAudioTrack) {
+        localAudioTrack.stop();
         localAudioTrack.close();
       }
       if (localVideoTrack) {
+        localVideoTrack.stop();
         localVideoTrack.close();
       }
+      
+      // Leave channel
       if (agoraClient) {
         await agoraClient.leave();
       }
+      
+      console.log('Agora cleanup complete');
     } catch (error) {
       console.error('Cleanup error:', error);
     }
