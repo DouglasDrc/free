@@ -694,6 +694,34 @@ async def admin_delete_user(user_id: str, current_user: dict = Depends(get_curre
     
     return {"message": "User deleted successfully"}
 
+@api_router.patch("/admin/users/{user_id}/balance")
+async def admin_update_balance(user_id: str, coins: int, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update balance
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"coins": coins}}
+    )
+    
+    # Record transaction
+    await db.transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "type": "admin_adjustment",
+        "amount": coins - user.get("coins", 0),
+        "description": f"Admin balance adjustment to {coins} coins",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"message": "Balance updated successfully", "new_balance": coins}
+
 # Include router
 app.include_router(api_router)
 
