@@ -132,6 +132,24 @@ const TherapistDashboard = () => {
     }
   };
 
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API}/therapists/profile/me`, {
+        ...editForm,
+        specialization: editForm.specialization.split(',').map(s => s.trim()).filter(s => s),
+        languages: editForm.languages.split(',').map(l => l.trim()).filter(l => l),
+        hobbies: editForm.hobbies.split(',').map(h => h.trim()).filter(h => h)
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Profile updated successfully!');
+      setShowEditProfile(false);
+      fetchProfile();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update profile');
+    }
+  };
+
   const completedSessions = sessions.filter(s => s.status === 'completed');
   const totalEarnings = completedSessions.reduce((sum, s) => sum + (s.duration_minutes * 30), 0);
   const totalMinutes = completedSessions.reduce((sum, s) => sum + s.duration_minutes, 0);
