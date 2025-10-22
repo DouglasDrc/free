@@ -96,14 +96,14 @@ const TherapistDashboard = () => {
     }
   };
 
-  const handleToggleOnline = async () => {
+  const handleStatusChange = async (newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`${API}/therapists/status?is_online=${!isOnline}`, {}, {
+      await axios.patch(`${API}/therapists/status?status=${newStatus}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setIsOnline(!isOnline);
-      toast.success(`Status updated to ${!isOnline ? 'Online' : 'Offline'}`);
+      setStatus(newStatus);
+      toast.success(`Status updated to ${newStatus}`);
     } catch (error) {
       toast.error('Failed to update status');
     }
