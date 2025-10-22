@@ -98,12 +98,6 @@ const VideoCall = () => {
         
         if (mediaType === 'video') {
           setRemoteUsers(prev => ({ ...prev, [user.uid]: user }));
-          // Play remote video
-          setTimeout(() => {
-            if (remoteVideoRef.current) {
-              user.videoTrack?.play(remoteVideoRef.current);
-            }
-          }, 100);
         }
         
         if (mediaType === 'audio') {
@@ -138,11 +132,6 @@ const VideoCall = () => {
       
       setLocalAudioTrack(audioTrack);
       setLocalVideoTrack(videoTrack);
-
-      // Play local video
-      if (localVideoRef.current) {
-        videoTrack.play(localVideoRef.current);
-      }
 
       // Publish tracks
       await client.publish([audioTrack, videoTrack]);
