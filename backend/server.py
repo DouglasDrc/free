@@ -75,7 +75,11 @@ class TherapistCreate(BaseModel):
     languages: List[str]
     bio: str
     photo: str
-    hourly_rate: int = 100
+    chat_rate: int = 100
+    call_rate: int = 150
+    hobbies: List[str] = []
+    age: Optional[int] = None
+    location: str = "India"
 
 class Session(BaseModel):
     model_config = ConfigDict(extra="ignore")
