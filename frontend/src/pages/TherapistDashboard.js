@@ -1,0 +1,318 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Switch } from '../components/ui/switch';
+import { toast } from 'sonner';
+import { Video, LogOut, Wallet, TrendingUp, Users, Clock } from 'lucide-react';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const TherapistDashboard = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [balance, setBalance] = useState(0);
+  const [isOnline, setIsOnline] = useState(false);
+  const [showProfileForm, setShowProfileForm] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    specialization: '',
+    experience: 0,
+    languages: '',
+    bio: '',
+    photo: '',
+    hourly_rate: 100
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    fetchUserData();
+    fetchProfile();
+    fetchSessions();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const [profileRes, balanceRes] = await Promise.all([
+        axios.get(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/users/balance`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      setUser(profileRes.data);
+      setBalance(balanceRes.data.coins);
+    } catch (error) {
+      toast.error('Failed to fetch user data');
+      navigate('/login');
+    }
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const userRes = await axios.get(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } });
+      const profileRes = await axios.get(`${API}/therapists/${userRes.data.id}`);
+      setProfile(profileRes.data);
+      setIsOnline(profileRes.data.is_online);
+    } catch (error) {
+      setShowProfileForm(true);
+    }
+  };
+
+  const fetchSessions = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/sessions/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSessions(response.data);
+    } catch (error) {
+      console.error('Failed to fetch sessions');
+    }
+  };
+
+  const handleCreateProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/therapists/profile`, {
+        ...profileForm,
+        specialization: profileForm.specialization.split(',').map(s => s.trim()),
+        languages: profileForm.languages.split(',').map(l => l.trim())
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Profile created successfully!');
+      setShowProfileForm(false);
+      fetchProfile();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create profile');
+    }
+  };
+
+  const handleToggleOnline = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API}/therapists/status?is_online=${!isOnline}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsOnline(!isOnline);
+      toast.success(`Status updated to ${!isOnline ? 'Online' : 'Offline'}`);
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const completedSessions = sessions.filter(s => s.status === 'completed');
+  const totalEarnings = completedSessions.reduce((sum, s) => sum + (s.duration_minutes * 30), 0);
+  const totalMinutes = completedSessions.reduce((sum, s) => sum + s.duration_minutes, 0);
+
+  if (showProfileForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center p-6">
+        <Card className="w-full max-w-2xl">
+          <CardHeader>
+            <CardTitle className="text-2xl">Complete Your Therapist Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateProfile} className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Specializations (comma-separated)</label>
+                <Input
+                  value={profileForm.specialization}
+                  onChange={(e) => setProfileForm({...profileForm, specialization: e.target.value})}
+                  data-testid="therapist-specialization-input"
+                  placeholder="Anxiety, Depression, Relationships"
+                  required
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Years of Experience</label>
+                <Input
+                  type="number"
+                  value={profileForm.experience}
+                  onChange={(e) => setProfileForm({...profileForm, experience: Number(e.target.value)})}
+                  data-testid="therapist-experience-input"
+                  required
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Languages (comma-separated)</label>
+                <Input
+                  value={profileForm.languages}
+                  onChange={(e) => setProfileForm({...profileForm, languages: e.target.value})}
+                  data-testid="therapist-languages-input"
+                  placeholder="English, Spanish"
+                  required
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Bio</label>
+                <Textarea
+                  value={profileForm.bio}
+                  onChange={(e) => setProfileForm({...profileForm, bio: e.target.value})}
+                  data-testid="therapist-bio-input"
+                  placeholder="Tell clients about yourself..."
+                  required
+                  className="mt-2"
+                  rows={4}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Photo URL</label>
+                <Input
+                  value={profileForm.photo}
+                  onChange={(e) => setProfileForm({...profileForm, photo: e.target.value})}
+                  data-testid="therapist-photo-input"
+                  placeholder="https://..."
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Rate (coins per minute)</label>
+                <Input
+                  type="number"
+                  value={profileForm.hourly_rate}
+                  onChange={(e) => setProfileForm({...profileForm, hourly_rate: Number(e.target.value)})}
+                  data-testid="therapist-rate-input"
+                  required
+                  className="mt-2"
+                />
+              </div>
+              <Button type="submit" data-testid="therapist-profile-submit-btn" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                Create Profile
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+      {/* Navbar */}
+      <nav className="bg-white/80 backdrop-blur-md border-b border-purple-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+              <Video className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold">MindConnect</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">Status:</span>
+              <Switch checked={isOnline} onCheckedChange={handleToggleOnline} data-testid="therapist-online-toggle" />
+              <span className={`text-sm font-semibold ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
+                {isOnline ? 'Online' : 'Offline'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-xl" data-testid="therapist-earnings">
+              <Wallet className="w-5 h-5" />
+              <span className="font-semibold">{balance} coins</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                localStorage.removeItem('token');
+                navigate('/login');
+              }}
+              data-testid="therapist-logout-btn"
+              className="text-gray-700 hover:text-gray-900"
+            >
+              <LogOut className="w-4 h-4 mr-2" /> Logout
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">Therapist Dashboard</h1>
+          <p className="text-gray-600">Manage your sessions and earnings</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-gradient-to-br from-purple-500 to-pink-600 text-white border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm">Total Earnings</p>
+                  <p className="text-3xl font-bold mt-1">{totalEarnings} coins</p>
+                </div>
+                <TrendingUp className="w-12 h-12 text-purple-200" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-orange-500 to-red-600 text-white border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm">Total Sessions</p>
+                  <p className="text-3xl font-bold mt-1">{completedSessions.length}</p>
+                </div>
+                <Users className="w-12 h-12 text-orange-200" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm">Total Minutes</p>
+                  <p className="text-3xl font-bold mt-1">{totalMinutes} min</p>
+                </div>
+                <Clock className="w-12 h-12 text-blue-200" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Session History */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Sessions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {sessions.length > 0 ? (
+              <div className="space-y-4" data-testid="session-history-list">
+                {sessions.slice(0, 10).map((session) => (
+                  <div key={session.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Session ID: {session.id.slice(0, 8)}</p>
+                      <p className="text-sm text-gray-600">
+                        {new Date(session.start_time).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-purple-700">
+                        {session.duration_minutes} min • {session.duration_minutes * 30} coins
+                      </p>
+                      <p className="text-sm text-gray-600 capitalize">{session.status}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">No sessions yet</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default TherapistDashboard;
