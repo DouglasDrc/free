@@ -143,6 +143,30 @@ const AdminDashboard = () => {
     }
   };
 
+  const openEditBalance = (user) => {
+    setSelectedUser(user);
+    setNewBalance(user.coins || 0);
+    setShowEditBalance(true);
+  };
+
+  const handleUpdateBalance = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API}/admin/users/${selectedUser.id}/balance?coins=${newBalance}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Balance updated successfully!');
+      setShowEditBalance(false);
+      fetchUsers();
+      fetchTherapists();
+      fetchAnalytics();
+    } catch (error) {
+      toast.error('Failed to update balance');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       {/* Navbar */}
