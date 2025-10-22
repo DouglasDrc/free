@@ -519,33 +519,25 @@ async def get_all_therapists(current_user: dict = Depends(get_current_user)):
 
 @api_router.post("/admin/therapists/create")
 async def admin_create_therapist(
-    email: EmailStr,
-    name: str,
-    password: str,
-    specialization: List[str],
-    experience: int,
-    languages: List[str],
-    bio: str,
-    photo: str,
-    hourly_rate: int,
+    therapist_data: TherapistCreateByAdmin,
     current_user: dict = Depends(get_current_user)
 ):
     if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
     # Check if user exists
-    existing = await db.users.find_one({"email": email})
+    existing = await db.users.find_one({"email": therapist_data.email})
     if existing:
         raise HTTPException(status_code=400, detail="User with this email already exists")
     
     # Create user account
     user_id = str(uuid.uuid4())
-    hashed_password = get_password_hash(password)
+    hashed_password = get_password_hash(therapist_data.password)
     
     user_doc = {
         "id": user_id,
-        "email": email,
-        "name": name,
+        "email": therapist_data.email,
+        "name": therapist_data.name,
         "role": "therapist",
         "password_hash": hashed_password,
         "coins": 0,
@@ -557,12 +549,12 @@ async def admin_create_therapist(
     # Create therapist profile
     profile_doc = {
         "user_id": user_id,
-        "specialization": specialization,
-        "experience": experience,
-        "languages": languages,
-        "bio": bio,
-        "photo": photo,
-        "hourly_rate": hourly_rate,
+        "specialization": therapist_data.specialization,
+        "experience": therapist_data.experience,
+        "languages": therapist_data.languages,
+        "bio": therapist_data.bio,
+        "photo": therapist_data.photo,
+        "hourly_rate": therapist_data.hourly_rate,
         "is_online": False,
         "rating": 0.0,
         "total_sessions": 0
