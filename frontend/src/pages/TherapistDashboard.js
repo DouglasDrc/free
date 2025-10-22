@@ -20,13 +20,20 @@ const TherapistDashboard = () => {
   const [balance, setBalance] = useState(0);
   const [status, setStatus] = useState('offline');
   const [showProfileForm, setShowProfileForm] = useState(false);
-  const [profileForm, setProfileForm] = useState({
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editForm, setEditForm] = useState({
     specialization: '',
     experience: 0,
     languages: '',
     bio: '',
     photo: '',
-    hourly_rate: 100
+    phone: '',
+    gender: '',
+    chat_rate: 100,
+    call_rate: 150,
+    hobbies: '',
+    age: 0,
+    location: 'India'
   });
 
   useEffect(() => {
