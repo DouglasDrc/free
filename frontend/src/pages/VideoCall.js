@@ -244,7 +244,8 @@ const VideoCall = () => {
       <div className="absolute top-6 left-6 bg-black/50 backdrop-blur-md text-white px-6 py-4 rounded-xl z-10">
         <p className="text-sm opacity-75">Session Duration</p>
         <p className="text-3xl font-bold" data-testid="call-duration">{formatDuration(callDuration)}</p>
-        <p className="text-sm mt-2 opacity-75">Cost: {Math.ceil(callDuration / 60) * 100} coins</p>
+        <p className="text-sm mt-2 opacity-75">Rate: {callRate} coins/min</p>
+        <p className="text-sm opacity-75">Cost: {Math.ceil(callDuration / 60) * callRate} coins</p>
       </div>
 
       {/* Controls */}
