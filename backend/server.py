@@ -322,9 +322,20 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     if session["client_id"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    # Get therapist profile to get correct rates
+    therapist = await db.therapists.find_one({"user_id": session["therapist_id"]}, {"_id": 0})
+    
     duration = session_data.duration_minutes
-    coins_spent = duration * 100  # 100 coins per minute
-    therapist_earnings = duration * 30  # 30 coins per minute for therapist
+    session_type = session.get("session_type", "call")
+    
+    # Use appropriate rate based on session type
+    if session_type == "chat":
+        rate_per_minute = therapist.get("chat_rate", 100) if therapist else 100
+    else:  # call
+        rate_per_minute = therapist.get("call_rate", 150) if therapist else 150
+    
+    coins_spent = duration * rate_per_minute
+    therapist_earnings = duration * 30  # 30 coins per minute for therapist (fixed)
     
     # Update session
     await db.sessions.update_one(
