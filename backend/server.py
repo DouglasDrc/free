@@ -489,6 +489,93 @@ async def get_all_users(current_user: dict = Depends(get_current_user)):
     users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
     return users
 
+@api_router.get("/admin/therapists")
+async def get_all_therapists(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    therapists = await db.therapists.find({}, {"_id": 0}).to_list(1000)
+    
+    # Get user details for each therapist
+    for therapist in therapists:
+        user = await db.users.find_one({"id": therapist["user_id"]}, {"_id": 0, "name": 1, "email": 1, "coins": 1})
+        if user:
+            therapist["name"] = user.get("name")
+            therapist["email"] = user.get("email")
+            therapist["coins"] = user.get("coins", 0)
+    
+    return therapists
+
+@api_router.post("/admin/therapists/create")
+async def admin_create_therapist(
+    email: EmailStr,
+    name: str,
+    password: str,
+    specialization: List[str],
+    experience: int,
+    languages: List[str],
+    bio: str,
+    photo: str,
+    hourly_rate: int,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if user exists
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        raise HTTPException(status_code=400, detail="User with this email already exists")
+    
+    # Create user account
+    user_id = str(uuid.uuid4())
+    hashed_password = get_password_hash(password)
+    
+    user_doc = {
+        "id": user_id,
+        "email": email,
+        "name": name,
+        "role": "therapist",
+        "password_hash": hashed_password,
+        "coins": 0,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    # Create therapist profile
+    profile_doc = {
+        "user_id": user_id,
+        "specialization": specialization,
+        "experience": experience,
+        "languages": languages,
+        "bio": bio,
+        "photo": photo,
+        "hourly_rate": hourly_rate,
+        "is_online": False,
+        "rating": 0.0,
+        "total_sessions": 0
+    }
+    
+    await db.therapists.insert_one(profile_doc)
+    
+    return {"message": "Therapist created successfully", "user_id": user_id}
+
+@api_router.delete("/admin/users/{user_id}")
+async def admin_delete_user(user_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Delete user
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete therapist profile if exists
+    await db.therapists.delete_one({"user_id": user_id})
+    
+    return {"message": "User deleted successfully"}
+
 # Include router
 app.include_router(api_router)
 
