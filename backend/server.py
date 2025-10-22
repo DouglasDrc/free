@@ -119,6 +119,10 @@ class SessionEnd(BaseModel):
     session_id: str
     duration_minutes: int
 
+class SessionDecline(BaseModel):
+    session_id: str
+    reason: str = "Therapist declined"
+
 class Transaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
