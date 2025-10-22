@@ -449,14 +449,25 @@ const TherapistDashboard = () => {
                         Started: {new Date(session.start_time).toLocaleTimeString()}
                       </p>
                     </div>
-                    <Button
-                      onClick={() => navigate(`/call/${session.id}`)}
-                      data-testid={`join-call-btn-${session.id}`}
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-6 text-lg animate-pulse"
-                    >
-                      <Phone className="w-5 h-5 mr-2" />
-                      Join Call
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => handleDeclineCall(session.id, session.client_name)}
+                        data-testid={`decline-call-btn-${session.id}`}
+                        variant="outline"
+                        className="border-2 border-red-500 text-red-600 hover:bg-red-50 px-6 py-6 text-lg"
+                      >
+                        <X className="w-5 h-5 mr-2" />
+                        Decline
+                      </Button>
+                      <Button
+                        onClick={() => navigate(`/call/${session.id}`)}
+                        data-testid={`join-call-btn-${session.id}`}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-6 text-lg animate-pulse"
+                      >
+                        <Phone className="w-5 h-5 mr-2" />
+                        Join Call
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
