@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Switch } from '../components/ui/switch';
 import { toast } from 'sonner';
-import { Video, LogOut, Wallet, TrendingUp, Users, Clock, Phone } from 'lucide-react';
+import { Video, LogOut, Wallet, TrendingUp, Users, Clock, Phone, X } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
