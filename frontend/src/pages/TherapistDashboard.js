@@ -205,6 +205,142 @@ const TherapistDashboard = () => {
               <Wallet className="w-5 h-5" />
               <span className="font-semibold">{balance} coins</span>
             </div>
+            <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
+              <DialogTrigger asChild>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                  Edit Profile
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Edit Your Profile</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleUpdateProfile} className="space-y-4 mt-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Phone</Label>
+                      <Input
+                        value={editForm.phone}
+                        onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                        className="mt-2"
+                        placeholder="+91 1234567890"
+                      />
+                    </div>
+                    <div>
+                      <Label>Gender</Label>
+                      <Select value={editForm.gender} onValueChange={(value) => setEditForm({...editForm, gender: value})}>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Male">Male</SelectItem>
+                          <SelectItem value="Female">Female</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Age</Label>
+                      <Input
+                        type="number"
+                        value={editForm.age}
+                        onChange={(e) => setEditForm({...editForm, age: Number(e.target.value)})}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label>Experience (years)</Label>
+                      <Input
+                        type="number"
+                        value={editForm.experience}
+                        onChange={(e) => setEditForm({...editForm, experience: Number(e.target.value)})}
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Chat Rate (coins/min)</Label>
+                      <Input
+                        type="number"
+                        value={editForm.chat_rate}
+                        onChange={(e) => setEditForm({...editForm, chat_rate: Number(e.target.value)})}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label>Call Rate (coins/min)</Label>
+                      <Input
+                        type="number"
+                        value={editForm.call_rate}
+                        onChange={(e) => setEditForm({...editForm, call_rate: Number(e.target.value)})}
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Specializations (comma-separated)</Label>
+                    <Input
+                      value={editForm.specialization}
+                      onChange={(e) => setEditForm({...editForm, specialization: e.target.value})}
+                      className="mt-2"
+                      placeholder="Anxiety, Depression, Stress"
+                    />
+                  </div>
+                  <div>
+                    <Label>Languages (comma-separated)</Label>
+                    <Input
+                      value={editForm.languages}
+                      onChange={(e) => setEditForm({...editForm, languages: e.target.value})}
+                      className="mt-2"
+                      placeholder="English, Hindi"
+                    />
+                  </div>
+                  <div>
+                    <Label>Hobbies (comma-separated)</Label>
+                    <Input
+                      value={editForm.hobbies}
+                      onChange={(e) => setEditForm({...editForm, hobbies: e.target.value})}
+                      className="mt-2"
+                      placeholder="Reading, Yoga, Traveling"
+                    />
+                  </div>
+                  <div>
+                    <Label>Location</Label>
+                    <Input
+                      value={editForm.location}
+                      onChange={(e) => setEditForm({...editForm, location: e.target.value})}
+                      className="mt-2"
+                      placeholder="India"
+                    />
+                  </div>
+                  <div>
+                    <Label>Bio</Label>
+                    <Textarea
+                      value={editForm.bio}
+                      onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
+                      className="mt-2"
+                      rows={4}
+                      placeholder="Tell clients about yourself..."
+                    />
+                  </div>
+                  <div>
+                    <Label>Photo URL</Label>
+                    <Input
+                      value={editForm.photo}
+                      onChange={(e) => setEditForm({...editForm, photo: e.target.value})}
+                      className="mt-2"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                    Save Changes
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
             <Button 
               variant="ghost" 
               onClick={() => {
