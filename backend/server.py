@@ -117,6 +117,17 @@ class ReviewCreate(BaseModel):
     rating: int
     comment: str
 
+class TherapistCreateByAdmin(BaseModel):
+    email: EmailStr
+    name: str
+    password: str
+    specialization: List[str]
+    experience: int
+    languages: List[str]
+    bio: str
+    photo: str
+    hourly_rate: int
+
 class Token(BaseModel):
     access_token: str
     token_type: str
