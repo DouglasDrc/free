@@ -91,7 +91,8 @@ const AdminDashboard = () => {
       await axios.post(`${API}/admin/therapists/create`, {
         ...therapistForm,
         specialization: therapistForm.specialization.split(',').map(s => s.trim()),
-        languages: therapistForm.languages.split(',').map(l => l.trim())
+        languages: therapistForm.languages.split(',').map(l => l.trim()),
+        hobbies: therapistForm.hobbies.split(',').map(h => h.trim()).filter(h => h)
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
