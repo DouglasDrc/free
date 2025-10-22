@@ -20,8 +20,10 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [therapists, setTherapists] = useState([]);
   const [showAddTherapist, setShowAddTherapist] = useState(false);
+  const [showEditTherapist, setShowEditTherapist] = useState(false);
   const [showEditBalance, setShowEditBalance] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedTherapist, setSelectedTherapist] = useState(null);
   const [newBalance, setNewBalance] = useState(0);
   const [loading, setLoading] = useState(false);
   const [therapistForm, setTherapistForm] = useState({
