@@ -251,6 +251,29 @@ async def get_my_therapist_profile(current_user: dict = Depends(get_current_user
     
     return profile
 
+@api_router.patch("/therapists/profile/me")
+async def update_my_therapist_profile(update_data: TherapistUpdate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "therapist":
+        raise HTTPException(status_code=403, detail="Only therapists can update profile")
+    
+    # Check if profile exists
+    existing = await db.therapists.find_one({"user_id": current_user["id"]})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Build update document with only provided fields
+    update_doc = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    
+    if not update_doc:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    await db.therapists.update_one(
+        {"user_id": current_user["id"]},
+        {"$set": update_doc}
+    )
+    
+    return {"message": "Profile updated successfully"}
+
 @api_router.get("/therapists")
 async def list_therapists(specialization: Optional[str] = None, min_price: Optional[int] = None, max_price: Optional[int] = None):
     query = {}
