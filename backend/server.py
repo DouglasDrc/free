@@ -362,7 +362,8 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    if session["client_id"] != current_user["id"]:
+    # Allow both client and therapist to end the session
+    if session["client_id"] != current_user["id"] and session["therapist_id"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Not authorized")
     
     # Get therapist profile to get correct rates
