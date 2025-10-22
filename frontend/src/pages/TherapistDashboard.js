@@ -233,6 +233,15 @@ const TherapistDashboard = () => {
             <span className="text-2xl font-bold">MindConnect</span>
           </div>
           <div className="flex items-center gap-4">
+            {/* Active Calls Badge */}
+            {activeSessions.length > 0 && (
+              <div className="relative">
+                <Phone className="w-6 h-6 text-green-600 animate-bounce" />
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                  {activeSessions.length}
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium">Status:</span>
               <Switch checked={status === 'online'} onCheckedChange={(checked) => handleStatusChange(checked ? 'online' : 'offline')} data-testid="therapist-online-toggle" />
