@@ -18,7 +18,7 @@ const TherapistDashboard = () => {
   const [profile, setProfile] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [balance, setBalance] = useState(0);
-  const [isOnline, setIsOnline] = useState(false);
+  const [status, setStatus] = useState('offline');
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [profileForm, setProfileForm] = useState({
     specialization: '',
