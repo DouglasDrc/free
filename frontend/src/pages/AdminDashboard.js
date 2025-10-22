@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { toast } from 'sonner';
-import { Video, LogOut, Users, DollarSign, Activity, TrendingUp } from 'lucide-react';
+import { Video, LogOut, Users, DollarSign, Activity, TrendingUp, UserPlus, Trash2 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -12,6 +17,20 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [users, setUsers] = useState([]);
+  const [therapists, setTherapists] = useState([]);
+  const [showAddTherapist, setShowAddTherapist] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [therapistForm, setTherapistForm] = useState({
+    email: '',
+    name: '',
+    password: '',
+    specialization: '',
+    experience: 0,
+    languages: '',
+    bio: '',
+    photo: '',
+    hourly_rate: 100
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -21,6 +40,7 @@ const AdminDashboard = () => {
     }
     fetchAnalytics();
     fetchUsers();
+    fetchTherapists();
   }, []);
 
   const fetchAnalytics = async () => {
@@ -44,6 +64,70 @@ const AdminDashboard = () => {
       setUsers(response.data);
     } catch (error) {
       toast.error('Failed to fetch users');
+    }
+  };
+
+  const fetchTherapists = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/admin/therapists`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTherapists(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch therapists');
+    }
+  };
+
+  const handleAddTherapist = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/admin/therapists/create`, {
+        ...therapistForm,
+        specialization: therapistForm.specialization.split(',').map(s => s.trim()),
+        languages: therapistForm.languages.split(',').map(l => l.trim())
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Therapist created successfully!');
+      setShowAddTherapist(false);
+      setTherapistForm({
+        email: '',
+        name: '',
+        password: '',
+        specialization: '',
+        experience: 0,
+        languages: '',
+        bio: '',
+        photo: '',
+        hourly_rate: 100
+      });
+      fetchUsers();
+      fetchTherapists();
+      fetchAnalytics();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create therapist');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API}/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('User deleted successfully');
+      fetchUsers();
+      fetchTherapists();
+      fetchAnalytics();
+    } catch (error) {
+      toast.error('Failed to delete user');
     }
   };
 
