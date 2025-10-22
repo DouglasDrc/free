@@ -68,6 +68,22 @@ const TherapistDashboard = () => {
       const profileRes = await axios.get(`${API}/therapists/profile/me`, { headers: { Authorization: `Bearer ${token}` } });
       setProfile(profileRes.data);
       setStatus(profileRes.data.status || 'offline');
+      
+      // Populate edit form with current data
+      setEditForm({
+        specialization: profileRes.data.specialization?.join(', ') || '',
+        experience: profileRes.data.experience || 0,
+        languages: profileRes.data.languages?.join(', ') || '',
+        bio: profileRes.data.bio || '',
+        photo: profileRes.data.photo || '',
+        phone: profileRes.data.phone || '',
+        gender: profileRes.data.gender || '',
+        chat_rate: profileRes.data.chat_rate || 100,
+        call_rate: profileRes.data.call_rate || 150,
+        hobbies: profileRes.data.hobbies?.join(', ') || '',
+        age: profileRes.data.age || 0,
+        location: profileRes.data.location || 'India'
+      });
     } catch (error) {
       toast.error('Profile not found. Please contact admin to create your profile.');
       setShowProfileForm(true);
