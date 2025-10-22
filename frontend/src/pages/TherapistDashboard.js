@@ -48,6 +48,11 @@ const TherapistDashboard = () => {
     fetchUserData();
     fetchProfile();
     fetchSessions();
+    fetchActiveSessions();
+    
+    // Poll for active sessions every 5 seconds
+    const interval = setInterval(fetchActiveSessions, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchUserData = async () => {
