@@ -110,6 +110,18 @@ const TherapistDashboard = () => {
     }
   };
 
+  const fetchActiveSessions = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/sessions/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActiveSessions(response.data);
+    } catch (error) {
+      console.error('Failed to fetch active sessions');
+    }
+  };
+
   const handleCreateProfile = async (e) => {
     e.preventDefault();
     try {
