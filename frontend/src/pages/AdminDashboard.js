@@ -241,12 +241,35 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div>
-                    <Label>Rate (coins/min)</Label>
+                    <Label>Age</Label>
                     <Input
                       type="number"
-                      value={therapistForm.hourly_rate}
-                      onChange={(e) => setTherapistForm({...therapistForm, hourly_rate: Number(e.target.value)})}
-                      data-testid="add-therapist-rate-input"
+                      value={therapistForm.age}
+                      onChange={(e) => setTherapistForm({...therapistForm, age: Number(e.target.value)})}
+                      data-testid="add-therapist-age-input"
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Chat Rate (coins/min)</Label>
+                    <Input
+                      type="number"
+                      value={therapistForm.chat_rate}
+                      onChange={(e) => setTherapistForm({...therapistForm, chat_rate: Number(e.target.value)})}
+                      data-testid="add-therapist-chat-rate-input"
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label>Call Rate (coins/min)</Label>
+                    <Input
+                      type="number"
+                      value={therapistForm.call_rate}
+                      onChange={(e) => setTherapistForm({...therapistForm, call_rate: Number(e.target.value)})}
+                      data-testid="add-therapist-call-rate-input"
                       required
                       className="mt-2"
                     />
