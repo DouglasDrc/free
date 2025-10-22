@@ -143,6 +143,24 @@ const TherapistDashboard = () => {
     }
   };
 
+  const handleDeclineCall = async (sessionId, clientName) => {
+    if (!window.confirm(`Decline call from ${clientName}?`)) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/sessions/decline`, {
+        session_id: sessionId,
+        reason: "Therapist is busy"
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Call declined');
+      fetchActiveSessions();
+    } catch (error) {
+      toast.error('Failed to decline call');
+    }
+  };
+
   const handleCreateProfile = async (e) => {
     e.preventDefault();
     try {
