@@ -381,6 +381,41 @@ const TherapistDashboard = () => {
           <p className="text-gray-600">Manage your sessions and earnings</p>
         </div>
 
+        {/* Active Sessions Alert */}
+        {activeSessions.length > 0 && (
+          <Card className="mb-8 border-2 border-green-500 bg-green-50">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                <Phone className="w-6 h-6 animate-pulse" />
+                Incoming Calls ({activeSessions.length})
+              </h3>
+              <div className="space-y-3">
+                {activeSessions.map((session) => (
+                  <div key={session.id} className="bg-white p-4 rounded-lg flex justify-between items-center shadow">
+                    <div>
+                      <p className="font-semibold text-lg">{session.client_name}</p>
+                      <p className="text-sm text-gray-600">
+                        Session Type: <span className="capitalize">{session.session_type}</span>
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Started: {new Date(session.start_time).toLocaleTimeString()}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => navigate(`/call/${session.id}`)}
+                      data-testid={`join-call-btn-${session.id}`}
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-6 text-lg animate-pulse"
+                    >
+                      <Phone className="w-5 h-5 mr-2" />
+                      Join Call
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-purple-500 to-pink-600 text-white border-0">
