@@ -206,7 +206,42 @@ const VideoCall = () => {
     }
   };
 
+  const handleAutoEndCall = async () => {
+    if (hasEndedRef.current) return;
+    hasEndedRef.current = true;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const durationMinutes = Math.ceil(callDuration / 60);
+      
+      await axios.post(`${API}/sessions/end`, {
+        session_id: sessionId,
+        duration_minutes: durationMinutes
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      await cleanupAgora();
+      
+      // Get user role to determine redirect
+      const userRes = await axios.get(`${API}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (userRes.data.role === 'therapist') {
+        navigate('/therapist');
+      } else {
+        navigate('/client');
+      }
+    } catch (error) {
+      console.error('Auto end call error:', error);
+      // Still navigate away even if API fails
+      navigate('/client');
+    }
+  };
+
   const handleEndCall = async () => {
+    if (hasEndedRef.current) return;
+    hasEndedRef.current = true;
+    
     try {
       const token = localStorage.getItem('token');
       const durationMinutes = Math.ceil(callDuration / 60);
