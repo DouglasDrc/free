@@ -174,6 +174,77 @@ const AdminDashboard = () => {
     }
   };
 
+  const openEditTherapist = (therapist) => {
+    setSelectedTherapist(therapist);
+    setTherapistForm({
+      email: therapist.email || '',
+      name: therapist.name || '',
+      password: '',
+      specialization: therapist.specialization?.join(', ') || '',
+      experience: therapist.experience || 0,
+      languages: therapist.languages?.join(', ') || '',
+      bio: therapist.bio || '',
+      photo: therapist.photo || '',
+      chat_rate: therapist.chat_rate || 100,
+      call_rate: therapist.call_rate || 150,
+      hobbies: therapist.hobbies?.join(', ') || '',
+      age: therapist.age || 0,
+      location: therapist.location || 'India',
+      phone: therapist.phone || '',
+      gender: therapist.gender || ''
+    });
+    setShowEditTherapist(true);
+  };
+
+  const handleUpdateTherapist = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API}/admin/therapists/${selectedTherapist.user_id}`, {
+        specialization: therapistForm.specialization.split(',').map(s => s.trim()),
+        experience: therapistForm.experience,
+        languages: therapistForm.languages.split(',').map(l => l.trim()),
+        bio: therapistForm.bio,
+        photo: therapistForm.photo,
+        phone: therapistForm.phone,
+        gender: therapistForm.gender,
+        chat_rate: therapistForm.chat_rate,
+        call_rate: therapistForm.call_rate,
+        hobbies: therapistForm.hobbies ? therapistForm.hobbies.split(',').map(h => h.trim()).filter(h => h) : [],
+        age: therapistForm.age,
+        location: therapistForm.location
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Therapist updated successfully!');
+      setShowEditTherapist(false);
+      setTherapistForm({
+        email: '',
+        name: '',
+        password: '',
+        specialization: '',
+        experience: 0,
+        languages: '',
+        bio: '',
+        photo: '',
+        chat_rate: 100,
+        call_rate: 150,
+        hobbies: '',
+        age: 0,
+        location: 'India',
+        phone: '',
+        gender: ''
+      });
+      fetchTherapists();
+      fetchAnalytics();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update therapist');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       {/* Navbar */}
