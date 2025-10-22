@@ -117,6 +117,8 @@ const VideoCall = () => {
         
         if (mediaType === 'video') {
           setRemoteUsers(prev => ({ ...prev, [user.uid]: user }));
+          setRemoteUserConnected(true);
+          toast.success('Other user connected!');
         }
         
         if (mediaType === 'audio') {
@@ -135,11 +137,23 @@ const VideoCall = () => {
       });
 
       client.on('user-left', (user) => {
+        console.log('User left:', user.uid);
         setRemoteUsers(prev => {
           const updated = { ...prev };
           delete updated[user.uid];
           return updated;
         });
+        setRemoteUserConnected(false);
+        
+        // Auto end call when remote user leaves
+        if (!hasEndedRef.current) {
+          toast.info('Other user left the call');
+          setTimeout(() => {
+            if (!hasEndedRef.current) {
+              handleAutoEndCall();
+            }
+          }, 2000);
+        }
       });
 
       // Join channel
