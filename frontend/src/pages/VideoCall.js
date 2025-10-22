@@ -52,6 +52,12 @@ const VideoCall = () => {
       const foundSession = response.data.find(s => s.id === sessionId);
       if (foundSession) {
         setSession(foundSession);
+        
+        // Get therapist rate
+        const therapistRes = await axios.get(`${API}/therapists/${foundSession.therapist_id}`);
+        const sessionType = foundSession.session_type || 'call';
+        const rate = sessionType === 'chat' ? therapistRes.data.chat_rate : therapistRes.data.call_rate;
+        setCallRate(rate || 150);
       }
     } catch (error) {
       toast.error('Failed to fetch session');
