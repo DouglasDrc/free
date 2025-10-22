@@ -92,9 +92,8 @@ class MindConnectAPITester:
         success, response = self.run_test(
             "Therapist Login",
             "POST",
-            "auth/login",
-            200,
-            data={"email": "therapist1@mindconnect.com", "password": "therapist123"}
+            "auth/login?email=therapist1@mindconnect.com&password=therapist123",
+            200
         )
         if success and 'access_token' in response:
             self.therapist_token = response['access_token']
