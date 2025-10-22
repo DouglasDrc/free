@@ -566,8 +566,12 @@ async def admin_create_therapist(
         "languages": therapist_data.languages,
         "bio": therapist_data.bio,
         "photo": therapist_data.photo,
-        "hourly_rate": therapist_data.hourly_rate,
-        "is_online": False,
+        "chat_rate": therapist_data.chat_rate,
+        "call_rate": therapist_data.call_rate,
+        "status": "offline",
+        "hobbies": therapist_data.hobbies,
+        "age": therapist_data.age,
+        "location": therapist_data.location,
         "rating": 0.0,
         "total_sessions": 0
     }
