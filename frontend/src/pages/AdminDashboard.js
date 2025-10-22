@@ -364,6 +364,51 @@ const AdminDashboard = () => {
           </Dialog>
         </div>
 
+        {/* Edit Balance Dialog */}
+        <Dialog open={showEditBalance} onOpenChange={setShowEditBalance}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit User Balance</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label>User: {selectedUser?.name}</Label>
+                <p className="text-sm text-gray-600">{selectedUser?.email}</p>
+              </div>
+              <div>
+                <Label>Current Balance: {selectedUser?.coins} coins</Label>
+              </div>
+              <div>
+                <Label>New Balance</Label>
+                <Input
+                  type="number"
+                  value={newBalance}
+                  onChange={(e) => setNewBalance(Number(e.target.value))}
+                  data-testid="edit-balance-input"
+                  className="mt-2"
+                  min="0"
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditBalance(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpdateBalance}
+                  data-testid="update-balance-btn"
+                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                >
+                  Update Balance
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Stats Cards */}
         {analytics && (
           <div className="grid md:grid-cols-4 gap-6 mb-8" data-testid="admin-analytics">
