@@ -196,30 +196,16 @@ async def get_balance(current_user: dict = Depends(get_current_user)):
     return {"coins": current_user.get("coins", 0)}
 
 # ============= Therapist Routes =============
-@api_router.post("/therapists/profile")
-async def create_therapist_profile(profile: TherapistCreate, current_user: dict = Depends(get_current_user)):
+@api_router.get("/therapists/profile/me")
+async def get_my_therapist_profile(current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "therapist":
-        raise HTTPException(status_code=403, detail="Only therapists can create profile")
+        raise HTTPException(status_code=403, detail="Only therapists can access this")
     
-    existing = await db.therapists.find_one({"user_id": current_user["id"]})
-    if existing:
-        raise HTTPException(status_code=400, detail="Profile already exists")
+    profile = await db.therapists.find_one({"user_id": current_user["id"]}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found. Contact admin to create your profile.")
     
-    profile_doc = {
-        "user_id": current_user["id"],
-        "specialization": profile.specialization,
-        "experience": profile.experience,
-        "languages": profile.languages,
-        "bio": profile.bio,
-        "photo": profile.photo,
-        "hourly_rate": profile.hourly_rate,
-        "is_online": False,
-        "rating": 0.0,
-        "total_sessions": 0
-    }
-    
-    await db.therapists.insert_one(profile_doc)
-    return {"message": "Profile created successfully"}
+    return profile
 
 @api_router.get("/therapists")
 async def list_therapists(specialization: Optional[str] = None, min_price: Optional[int] = None, max_price: Optional[int] = None):
