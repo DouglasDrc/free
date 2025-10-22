@@ -238,6 +238,31 @@ const AdminDashboard = () => {
                     />
                   </div>
                 </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Phone</Label>
+                    <Input
+                      value={therapistForm.phone}
+                      onChange={(e) => setTherapistForm({...therapistForm, phone: e.target.value})}
+                      data-testid="add-therapist-phone-input"
+                      className="mt-2"
+                      placeholder="+91 1234567890"
+                    />
+                  </div>
+                  <div>
+                    <Label>Gender</Label>
+                    <Select value={therapistForm.gender} onValueChange={(value) => setTherapistForm({...therapistForm, gender: value})}>
+                      <SelectTrigger data-testid="add-therapist-gender-select" className="mt-2">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div>
                   <Label>Password</Label>
                   <Input
