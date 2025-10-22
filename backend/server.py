@@ -297,6 +297,7 @@ async def start_session(session_data: SessionStart, current_user: dict = Depends
         "client_id": current_user["id"],
         "therapist_id": session_data.therapist_id,
         "channel_name": channel_name,
+        "session_type": session_data.session_type,
         "start_time": datetime.now(timezone.utc).isoformat(),
         "end_time": None,
         "duration_minutes": 0,
