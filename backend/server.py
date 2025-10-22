@@ -265,15 +265,18 @@ async def get_therapist(therapist_id: str):
     return therapist
 
 @api_router.patch("/therapists/status")
-async def update_online_status(is_online: bool, current_user: dict = Depends(get_current_user)):
+async def update_therapist_status(status: str, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "therapist":
         raise HTTPException(status_code=403, detail="Only therapists can update status")
     
+    if status not in ["online", "offline", "busy"]:
+        raise HTTPException(status_code=400, detail="Invalid status. Must be: online, offline, or busy")
+    
     await db.therapists.update_one(
         {"user_id": current_user["id"]},
-        {"$set": {"is_online": is_online}}
+        {"$set": {"status": status}}
     )
-    return {"message": "Status updated"}
+    return {"message": "Status updated", "status": status}
 
 # ============= Session Routes =============
 @api_router.post("/sessions/start")
