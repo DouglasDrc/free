@@ -287,6 +287,27 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
+                  <Label>Hobbies/Interests (comma-separated)</Label>
+                  <Input
+                    value={therapistForm.hobbies}
+                    onChange={(e) => setTherapistForm({...therapistForm, hobbies: e.target.value})}
+                    data-testid="add-therapist-hobbies-input"
+                    placeholder="Reading, Yoga, Traveling"
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label>Location</Label>
+                  <Input
+                    value={therapistForm.location}
+                    onChange={(e) => setTherapistForm({...therapistForm, location: e.target.value})}
+                    data-testid="add-therapist-location-input"
+                    placeholder="India"
+                    required
+                    className="mt-2"
+                  />
+                </div>
+                <div>
                   <Label>Bio</Label>
                   <Textarea
                     value={therapistForm.bio}
