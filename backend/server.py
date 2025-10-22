@@ -77,11 +77,27 @@ class TherapistCreate(BaseModel):
     languages: List[str]
     bio: str
     photo: str
+    phone: Optional[str] = None
+    gender: Optional[str] = None
     chat_rate: int = 100
     call_rate: int = 150
     hobbies: List[str] = []
     age: Optional[int] = None
     location: str = "India"
+
+class TherapistUpdate(BaseModel):
+    specialization: Optional[List[str]] = None
+    experience: Optional[int] = None
+    languages: Optional[List[str]] = None
+    bio: Optional[str] = None
+    photo: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[str] = None
+    chat_rate: Optional[int] = None
+    call_rate: Optional[int] = None
+    hobbies: Optional[List[str]] = None
+    age: Optional[int] = None
+    location: Optional[str] = None
 
 class Session(BaseModel):
     model_config = ConfigDict(extra="ignore")
