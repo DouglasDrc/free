@@ -60,7 +60,7 @@ const TherapistDashboard = () => {
       const token = localStorage.getItem('token');
       const profileRes = await axios.get(`${API}/therapists/profile/me`, { headers: { Authorization: `Bearer ${token}` } });
       setProfile(profileRes.data);
-      setIsOnline(profileRes.data.is_online);
+      setStatus(profileRes.data.status || 'offline');
     } catch (error) {
       toast.error('Profile not found. Please contact admin to create your profile.');
       setShowProfileForm(true);
