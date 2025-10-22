@@ -153,9 +153,9 @@ const TherapistDashboard = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium">Status:</span>
-              <Switch checked={isOnline} onCheckedChange={handleToggleOnline} data-testid="therapist-online-toggle" />
-              <span className={`text-sm font-semibold ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-                {isOnline ? 'Online' : 'Offline'}
+              <Switch checked={status === 'online'} onCheckedChange={(checked) => handleStatusChange(checked ? 'online' : 'offline')} data-testid="therapist-online-toggle" />
+              <span className={`text-sm font-semibold ${status === 'online' ? 'text-green-600' : 'text-gray-500'}`}>
+                {status === 'online' ? 'Online' : 'Offline'}
               </span>
             </div>
             <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-xl" data-testid="therapist-earnings">
