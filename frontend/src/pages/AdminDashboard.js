@@ -107,7 +107,11 @@ const AdminDashboard = () => {
         languages: '',
         bio: '',
         photo: '',
-        hourly_rate: 100
+        chat_rate: 100,
+        call_rate: 150,
+        hobbies: '',
+        age: 0,
+        location: 'India'
       });
       fetchUsers();
       fetchTherapists();
