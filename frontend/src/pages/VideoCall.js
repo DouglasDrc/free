@@ -196,9 +196,20 @@ const VideoCall = () => {
       
       toast.success('Call ended');
       await cleanupAgora();
-      navigate('/client');
+      
+      // Get user role to determine redirect
+      const userRes = await axios.get(`${API}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (userRes.data.role === 'therapist') {
+        navigate('/therapist');
+      } else {
+        navigate('/client');
+      }
     } catch (error) {
-      toast.error('Failed to end call');
+      toast.error('Failed to end call: ' + (error.response?.data?.detail || error.message));
+      console.error('End call error:', error);
     }
   };
 
