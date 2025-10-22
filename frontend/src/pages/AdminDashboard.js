@@ -467,6 +467,151 @@ const AdminDashboard = () => {
           </Dialog>
         </div>
 
+        {/* Edit Therapist Dialog */}
+        <Dialog open={showEditTherapist} onOpenChange={setShowEditTherapist}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Therapist Details</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleUpdateTherapist} className="space-y-4 mt-4">
+              <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> Email and password cannot be changed here. Contact support for account changes.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Phone</Label>
+                  <Input
+                    value={therapistForm.phone}
+                    onChange={(e) => setTherapistForm({...therapistForm, phone: e.target.value})}
+                    className="mt-2"
+                    placeholder="+91 1234567890"
+                  />
+                </div>
+                <div>
+                  <Label>Gender</Label>
+                  <Select value={therapistForm.gender} onValueChange={(value) => setTherapistForm({...therapistForm, gender: value})}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label>Specializations (comma-separated)</Label>
+                <Input
+                  value={therapistForm.specialization}
+                  onChange={(e) => setTherapistForm({...therapistForm, specialization: e.target.value})}
+                  required
+                  className="mt-2"
+                  placeholder="Anxiety, Depression, Relationships"
+                />
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Years of Experience</Label>
+                  <Input
+                    type="number"
+                    value={therapistForm.experience}
+                    onChange={(e) => setTherapistForm({...therapistForm, experience: Number(e.target.value)})}
+                    required
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label>Age</Label>
+                  <Input
+                    type="number"
+                    value={therapistForm.age}
+                    onChange={(e) => setTherapistForm({...therapistForm, age: Number(e.target.value)})}
+                    className="mt-2"
+                  />
+                </div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Chat Rate (coins/min)</Label>
+                  <Input
+                    type="number"
+                    value={therapistForm.chat_rate}
+                    onChange={(e) => setTherapistForm({...therapistForm, chat_rate: Number(e.target.value)})}
+                    required
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label>Call Rate (coins/min)</Label>
+                  <Input
+                    type="number"
+                    value={therapistForm.call_rate}
+                    onChange={(e) => setTherapistForm({...therapistForm, call_rate: Number(e.target.value)})}
+                    required
+                    className="mt-2"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Languages (comma-separated)</Label>
+                <Input
+                  value={therapistForm.languages}
+                  onChange={(e) => setTherapistForm({...therapistForm, languages: e.target.value})}
+                  required
+                  className="mt-2"
+                  placeholder="English, Spanish"
+                />
+              </div>
+              <div>
+                <Label>Hobbies/Interests (comma-separated)</Label>
+                <Input
+                  value={therapistForm.hobbies}
+                  onChange={(e) => setTherapistForm({...therapistForm, hobbies: e.target.value})}
+                  className="mt-2"
+                  placeholder="Reading, Yoga, Traveling"
+                />
+              </div>
+              <div>
+                <Label>Location</Label>
+                <Input
+                  value={therapistForm.location}
+                  onChange={(e) => setTherapistForm({...therapistForm, location: e.target.value})}
+                  required
+                  className="mt-2"
+                  placeholder="India"
+                />
+              </div>
+              <div>
+                <Label>Bio</Label>
+                <Textarea
+                  value={therapistForm.bio}
+                  onChange={(e) => setTherapistForm({...therapistForm, bio: e.target.value})}
+                  required
+                  className="mt-2"
+                  rows={3}
+                  placeholder="Professional background and approach..."
+                />
+              </div>
+              <div>
+                <Label>Photo URL (optional)</Label>
+                <Input
+                  value={therapistForm.photo}
+                  onChange={(e) => setTherapistForm({...therapistForm, photo: e.target.value})}
+                  className="mt-2"
+                  placeholder="https://..."
+                />
+              </div>
+              <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white">
+                {loading ? 'Updating...' : 'Update Therapist Details'}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         {/* Edit Balance Dialog */}
         <Dialog open={showEditBalance} onOpenChange={setShowEditBalance}>
           <DialogContent className="max-w-md">
