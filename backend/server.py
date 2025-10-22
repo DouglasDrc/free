@@ -95,6 +95,7 @@ class Session(BaseModel):
 
 class SessionStart(BaseModel):
     therapist_id: str
+    session_type: str = "call"  # chat or call
 
 class SessionEnd(BaseModel):
     session_id: str
