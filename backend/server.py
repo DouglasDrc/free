@@ -153,6 +153,8 @@ class TherapistCreateByAdmin(BaseModel):
     languages: List[str]
     bio: str
     photo: str
+    phone: Optional[str] = None
+    gender: Optional[str] = None
     chat_rate: int = 100
     call_rate: int = 150
     hobbies: List[str] = []
