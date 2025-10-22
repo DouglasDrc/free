@@ -19,6 +19,7 @@ const VideoCall = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+  const [callRate, setCallRate] = useState(150);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const startTimeRef = useRef(Date.now());
