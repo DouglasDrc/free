@@ -134,7 +134,11 @@ class TherapistCreateByAdmin(BaseModel):
     languages: List[str]
     bio: str
     photo: str
-    hourly_rate: int
+    chat_rate: int = 100
+    call_rate: int = 150
+    hobbies: List[str] = []
+    age: Optional[int] = None
+    location: str = "India"
 
 class Token(BaseModel):
     access_token: str
