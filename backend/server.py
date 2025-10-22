@@ -435,6 +435,36 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     
     return {"message": "Session ended", "coins_spent": coins_spent}
 
+@api_router.post("/sessions/decline")
+async def decline_session(decline_data: SessionDecline, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "therapist":
+        raise HTTPException(status_code=403, detail="Only therapists can decline sessions")
+    
+    session = await db.sessions.find_one({"id": decline_data.session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    if session["therapist_id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if session["status"] != "active":
+        raise HTTPException(status_code=400, detail="Session is not active")
+    
+    # Update session to declined status
+    await db.sessions.update_one(
+        {"id": decline_data.session_id},
+        {"$set": {
+            "end_time": datetime.now(timezone.utc).isoformat(),
+            "status": "declined",
+            "decline_reason": decline_data.reason
+        }}
+    )
+    
+    # Refund coins to client (no deduction for declined calls)
+    # No coins were deducted yet, so no refund needed
+    
+    return {"message": "Session declined", "reason": decline_data.reason}
+
 @api_router.get("/sessions/history")
 async def get_session_history(current_user: dict = Depends(get_current_user)):
     query = {}
