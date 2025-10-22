@@ -158,9 +158,130 @@ const AdminDashboard = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Platform overview and analytics</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-gray-600">Platform overview and management</p>
+          </div>
+          <Dialog open={showAddTherapist} onOpenChange={setShowAddTherapist}>
+            <DialogTrigger asChild>
+              <Button data-testid="add-therapist-btn" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white">
+                <UserPlus className="w-4 h-4 mr-2" /> Add Therapist
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Therapist</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddTherapist} className="space-y-4 mt-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Full Name</Label>
+                    <Input
+                      value={therapistForm.name}
+                      onChange={(e) => setTherapistForm({...therapistForm, name: e.target.value})}
+                      data-testid="add-therapist-name-input"
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={therapistForm.email}
+                      onChange={(e) => setTherapistForm({...therapistForm, email: e.target.value})}
+                      data-testid="add-therapist-email-input"
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Password</Label>
+                  <Input
+                    type="password"
+                    value={therapistForm.password}
+                    onChange={(e) => setTherapistForm({...therapistForm, password: e.target.value})}
+                    data-testid="add-therapist-password-input"
+                    required
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label>Specializations (comma-separated)</Label>
+                  <Input
+                    value={therapistForm.specialization}
+                    onChange={(e) => setTherapistForm({...therapistForm, specialization: e.target.value})}
+                    data-testid="add-therapist-specialization-input"
+                    placeholder="Anxiety, Depression, Relationships"
+                    required
+                    className="mt-2"
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Years of Experience</Label>
+                    <Input
+                      type="number"
+                      value={therapistForm.experience}
+                      onChange={(e) => setTherapistForm({...therapistForm, experience: Number(e.target.value)})}
+                      data-testid="add-therapist-experience-input"
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label>Rate (coins/min)</Label>
+                    <Input
+                      type="number"
+                      value={therapistForm.hourly_rate}
+                      onChange={(e) => setTherapistForm({...therapistForm, hourly_rate: Number(e.target.value)})}
+                      data-testid="add-therapist-rate-input"
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Languages (comma-separated)</Label>
+                  <Input
+                    value={therapistForm.languages}
+                    onChange={(e) => setTherapistForm({...therapistForm, languages: e.target.value})}
+                    data-testid="add-therapist-languages-input"
+                    placeholder="English, Spanish"
+                    required
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label>Bio</Label>
+                  <Textarea
+                    value={therapistForm.bio}
+                    onChange={(e) => setTherapistForm({...therapistForm, bio: e.target.value})}
+                    data-testid="add-therapist-bio-input"
+                    placeholder="Professional background and approach..."
+                    required
+                    className="mt-2"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>Photo URL (optional)</Label>
+                  <Input
+                    value={therapistForm.photo}
+                    onChange={(e) => setTherapistForm({...therapistForm, photo: e.target.value})}
+                    data-testid="add-therapist-photo-input"
+                    placeholder="https://..."
+                    className="mt-2"
+                  />
+                </div>
+                <Button type="submit" disabled={loading} data-testid="submit-add-therapist-btn" className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white">
+                  {loading ? 'Creating...' : 'Create Therapist Account'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats Cards */}
@@ -213,48 +334,130 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Users Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full" data-testid="users-table">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-3 font-semibold">Name</th>
-                    <th className="text-left p-3 font-semibold">Email</th>
-                    <th className="text-left p-3 font-semibold">Role</th>
-                    <th className="text-left p-3 font-semibold">Coins</th>
-                    <th className="text-left p-3 font-semibold">Joined</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">{user.name}</td>
-                      <td className="p-3">{user.email}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          user.role === 'client' ? 'bg-blue-100 text-blue-700' :
-                          user.role === 'therapist' ? 'bg-purple-100 text-purple-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="p-3">{user.coins}</td>
-                      <td className="p-3 text-sm text-gray-600">
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </td>
-                    </tr>
+        {/* Tabs for Users and Therapists */}
+        <Tabs defaultValue="users" className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="users">All Users</TabsTrigger>
+            <TabsTrigger value="therapists">Therapists</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full" data-testid="users-table">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-3 font-semibold">Name</th>
+                        <th className="text-left p-3 font-semibold">Email</th>
+                        <th className="text-left p-3 font-semibold">Role</th>
+                        <th className="text-left p-3 font-semibold">Coins</th>
+                        <th className="text-left p-3 font-semibold">Joined</th>
+                        <th className="text-left p-3 font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id} className="border-b hover:bg-gray-50">
+                          <td className="p-3">{user.name}</td>
+                          <td className="p-3">{user.email}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              user.role === 'client' ? 'bg-blue-100 text-blue-700' :
+                              user.role === 'therapist' ? 'bg-purple-100 text-purple-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {user.role}
+                            </span>
+                          </td>
+                          <td className="p-3">{user.coins}</td>
+                          <td className="p-3 text-sm text-gray-600">
+                            {new Date(user.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="p-3">
+                            {user.role !== 'admin' && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteUser(user.id)}
+                                data-testid={`delete-user-btn-${user.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="therapists">
+            <Card>
+              <CardHeader>
+                <CardTitle>Therapist Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4" data-testid="therapists-details-list">
+                  {therapists.map((therapist) => (
+                    <div key={therapist.user_id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start">
+                        <div className="flex gap-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                            {therapist.name?.charAt(0)}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{therapist.name}</h3>
+                            <p className="text-sm text-gray-600">{therapist.email}</p>
+                            <div className="flex gap-2 mt-2">
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">{therapist.experience} years exp</span>
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">{therapist.hourly_rate} coins/min</span>
+                              <span className={`px-2 py-1 rounded text-xs ${therapist.is_online ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                                {therapist.is_online ? 'Online' : 'Offline'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-600">Earnings</p>
+                          <p className="text-xl font-bold text-purple-700">{therapist.coins} coins</p>
+                          <p className="text-xs text-gray-600 mt-1">Rating: {therapist.rating || 'N/A'} ⭐</p>
+                          <p className="text-xs text-gray-600">{therapist.total_sessions} sessions</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="text-sm text-gray-700 mb-2">{therapist.bio}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {therapist.specialization?.map((spec, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                              {spec}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          {therapist.languages?.map((lang, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                              {lang}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                  {therapists.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">No therapists yet</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
