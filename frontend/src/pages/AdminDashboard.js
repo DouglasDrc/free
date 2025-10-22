@@ -97,7 +97,7 @@ const AdminDashboard = () => {
         ...therapistForm,
         specialization: therapistForm.specialization.split(',').map(s => s.trim()),
         languages: therapistForm.languages.split(',').map(l => l.trim()),
-        hobbies: therapistForm.hobbies.split(',').map(h => h.trim()).filter(h => h)
+        hobbies: therapistForm.hobbies ? therapistForm.hobbies.split(',').map(h => h.trim()).filter(h => h) : []
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
