@@ -458,16 +458,26 @@ const AdminDashboard = () => {
                             {new Date(user.created_at).toLocaleDateString()}
                           </td>
                           <td className="p-3">
-                            {user.role !== 'admin' && (
+                            <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                variant="destructive"
-                                onClick={() => handleDeleteUser(user.id)}
-                                data-testid={`delete-user-btn-${user.id}`}
+                                variant="outline"
+                                onClick={() => openEditBalance(user)}
+                                data-testid={`edit-balance-btn-${user.id}`}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                Edit Balance
                               </Button>
-                            )}
+                              {user.role !== 'admin' && (
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  data-testid={`delete-user-btn-${user.id}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
