@@ -667,6 +667,14 @@ const AdminDashboard = () => {
                           <p className="text-xl font-bold text-purple-700">{therapist.coins} coins</p>
                           <p className="text-xs text-gray-600 mt-1">Rating: {therapist.rating || 'N/A'} ⭐</p>
                           <p className="text-xs text-gray-600">{therapist.total_sessions} sessions</p>
+                          <Button
+                            size="sm"
+                            onClick={() => openEditTherapist(therapist)}
+                            data-testid={`edit-therapist-btn-${therapist.user_id}`}
+                            className="mt-3 bg-purple-600 hover:bg-purple-700 text-white"
+                          >
+                            Edit Details
+                          </Button>
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t">
