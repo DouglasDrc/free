@@ -58,11 +58,11 @@ const TherapistDashboard = () => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const userRes = await axios.get(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } });
-      const profileRes = await axios.get(`${API}/therapists/${userRes.data.id}`);
+      const profileRes = await axios.get(`${API}/therapists/profile/me`, { headers: { Authorization: `Bearer ${token}` } });
       setProfile(profileRes.data);
       setIsOnline(profileRes.data.is_online);
     } catch (error) {
+      toast.error('Profile not found. Please contact admin to create your profile.');
       setShowProfileForm(true);
     }
   };
