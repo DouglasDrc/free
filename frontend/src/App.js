@@ -24,6 +24,8 @@ function App() {
           <Route path="/therapist" element={<TherapistDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/call/:sessionId" element={<VideoCall />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/support" element={<Support />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
