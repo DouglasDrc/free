@@ -383,6 +383,15 @@ async def get_session_history(current_user: dict = Depends(get_current_user)):
     return sessions
 
 # ============= Coins Routes =============
+@api_router.get("/coins/packages")
+async def get_coin_packages():
+    packages = [
+        {"id": "starter", "name": "Starter Plan", "price": 49, "coins": 600, "bonus": 110},
+        {"id": "silver", "name": "Silver", "price": 99, "coins": 1500, "bonus": 510},
+        {"id": "gold", "name": "Gold", "price": 199, "coins": 3300, "bonus": 1310}
+    ]
+    return packages
+
 @api_router.post("/coins/recharge")
 async def recharge_coins(amount: int, current_user: dict = Depends(get_current_user)):
     if amount < 100:
@@ -405,6 +414,37 @@ async def recharge_coins(amount: int, current_user: dict = Depends(get_current_u
     })
     
     return {"message": "Coins recharged", "new_balance": current_user.get("coins", 0) + amount}
+
+@api_router.post("/coins/recharge/package")
+async def recharge_package(package_id: str, current_user: dict = Depends(get_current_user)):
+    packages = {
+        "starter": {"price": 49, "coins": 600},
+        "silver": {"price": 99, "coins": 1500},
+        "gold": {"price": 199, "coins": 3300}
+    }
+    
+    if package_id not in packages:
+        raise HTTPException(status_code=404, detail="Package not found")
+    
+    package = packages[package_id]
+    
+    # Mock payment - just add coins
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$inc": {"coins": package["coins"]}}
+    )
+    
+    # Record transaction
+    await db.transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": current_user["id"],
+        "type": "recharge",
+        "amount": package["coins"],
+        "description": f"Recharged via {package_id} package - ₹{package['price']}",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"message": f"Successfully recharged {package['coins']} coins", "new_balance": current_user.get("coins", 0) + package["coins"]}
 
 @api_router.get("/coins/transactions")
 async def get_transactions(current_user: dict = Depends(get_current_user)):
