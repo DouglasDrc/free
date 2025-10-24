@@ -139,9 +139,8 @@ const TherapistDashboard = () => {
         s.status === 'pending' && !previousSessionIds.has(s.id)
       );
       
-      // Show full-screen modal for first incoming call
-      // Removed previousSessionIds.size > 0 check to show on first load too
-      if (incomingSessions.length > 0 && !showIncomingCall) {
+      // Show full-screen modal for first incoming call (REMOVED !showIncomingCall condition)
+      if (incomingSessions.length > 0) {
         setShowIncomingCall(incomingSessions[0]);
         
         // Also show toast notification
@@ -156,7 +155,7 @@ const TherapistDashboard = () => {
       
       // If no pending sessions, hide modal
       const hasPendingSessions = newSessions.some(s => s.status === 'pending');
-      if (!hasPendingSessions && showIncomingCall) {
+      if (!hasPendingSessions) {
         setShowIncomingCall(null);
       }
       
