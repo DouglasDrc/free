@@ -115,8 +115,23 @@ class MindConnectAPITester:
             return True
         return False
 
-    def test_therapist_login(self):
-        """Test therapist login with test credentials"""
+    def test_therapist_registration_and_login(self):
+        """Test therapist registration and login with test credentials"""
+        # Try to register first (might fail if user exists)
+        self.run_test(
+            "Therapist Registration (if needed)",
+            "POST",
+            "auth/register",
+            200,
+            data={
+                "email": "therapist@test.com",
+                "name": "Test Therapist",
+                "password": "therapist123",
+                "role": "therapist"
+            }
+        )
+        
+        # Now try to login
         success, response = self.run_test(
             "Therapist Login",
             "POST",
