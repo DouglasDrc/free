@@ -153,6 +153,20 @@ class MindConnectAPITester:
         )
         return success and len(response) > 0
 
+    def test_recharge_coins(self):
+        """Test coin recharge"""
+        if not self.client_token:
+            return False
+        
+        success, response = self.run_test(
+            "Recharge Coins",
+            "POST",
+            "coins/recharge?amount=1000",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        return success
+
     def test_recharge_package(self):
         """Test coin recharge with package"""
         if not self.client_token:
