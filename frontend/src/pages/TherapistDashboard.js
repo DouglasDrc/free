@@ -31,6 +31,7 @@ const TherapistDashboard = () => {
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showUserProfileEdit, setShowUserProfileEdit] = useState(false);
+  const [showTransactions, setShowTransactions] = useState(false);
   const [editForm, setEditForm] = useState({
     specialization: '',
     experience: 0,
