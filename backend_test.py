@@ -670,6 +670,20 @@ class MindConnectAPITester:
 
         session_id = response['session_id']
 
+        # Therapist must accept session first for billing to occur
+        success, accept_response = self.run_test(
+            "Therapist Accepts Session (Transaction Test)",
+            "POST",
+            "sessions/accept",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to accept session")
+            return False
+
         # End session
         success, response = self.run_test(
             "End Session (Transaction Test)",
