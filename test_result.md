@@ -169,3 +169,7 @@ agent_communication:
       message: "Fixed critical Twilio client initialization bug in backend/server.py line 42. Changed from using API keys to using Account SID and Auth Token for TwilioClient initialization. Backend restarted successfully. Need to test: 1) Token generation endpoint (/api/twilio/token), 2) End-to-end video call functionality. Test credentials: Admin - admin@admin.com/admin123, Client - client@test.com/client123, Therapist - therapist@test.com/therapist123"
     - agent: "testing"
       message: "BACKEND TESTING COMPLETE: All Twilio backend integration tests PASSED. ✅ Twilio client initialization working (no error 53126). ✅ Token generation endpoint working for both client and therapist roles. ✅ Authentication properly enforced. ✅ JWT tokens valid with correct Twilio video grants. ✅ Session management working with proper room names. Backend is ready for frontend integration. Frontend testing not performed as per system limitations."
+    - agent: "user"
+      message: "CRITICAL BUG REPORTED: Coin deduction not working during video calls"
+    - agent: "main"
+      message: "INVESTIGATING coin deduction issue. Found critical bug in /api/sessions/end endpoint - coins were being deducted from current_user (whoever ends the session) instead of always from the client. This means if therapist ends the session, therapist loses coins instead of client. Fixed by changing line 408 from 'current_user[id]' to 'session[client_id]' and also fixed transaction record on line 421. Backend auto-reloaded. Need to test coin deduction flow."
