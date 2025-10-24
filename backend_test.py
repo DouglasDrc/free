@@ -1384,21 +1384,535 @@ class MindConnectAPITester:
             print("   ❌ Failed to end session before therapist joined")
             return False
 
+    # ============= PENDING SESSIONS VISIBILITY TESTS =============
+    
+    def test_pending_sessions_visibility_scenario_1(self):
+        """Test Scenario 1: Client Starts Call - Therapist Sees It"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing PENDING SESSIONS - Scenario 1: Client Starts Call, Therapist Sees It...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        # Step 1: Client creates session
+        success, response = self.run_test(
+            "Client Starts Session",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+        print(f"   ✅ Session created: {session_id}")
+
+        # Step 2: Verify session created with status='pending'
+        success, session_history = self.run_test(
+            "Get Session History (Verify Pending)",
+            "GET",
+            "sessions/history",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get session history")
+            return False
+
+        # Find our session
+        current_session = None
+        for session in session_history:
+            if session['id'] == session_id:
+                current_session = session
+                break
+        
+        if not current_session or current_session['status'] != 'pending':
+            print(f"   ❌ Expected session status 'pending', got '{current_session['status'] if current_session else 'not found'}'")
+            return False
+
+        print("   ✅ Session created with status='pending'")
+
+        # Step 3: Therapist checks active sessions - should see the pending session
+        success, therapist_active_sessions = self.run_test(
+            "Therapist Gets Active Sessions (Should See Pending)",
+            "GET",
+            "sessions/active",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get therapist active sessions")
+            return False
+
+        # Verify therapist can see the pending session with client name
+        pending_session_found = False
+        for session in therapist_active_sessions:
+            if session['id'] == session_id and session['status'] == 'pending':
+                pending_session_found = True
+                if 'client_name' in session:
+                    print(f"   ✅ Therapist can see pending session with client name: {session['client_name']}")
+                else:
+                    print("   ✅ Therapist can see pending session (client name not populated)")
+                break
+        
+        if not pending_session_found:
+            print("   ❌ Therapist cannot see the pending session in active sessions")
+            return False
+
+        # Step 4: Client also checks active sessions - should see their pending session
+        success, client_active_sessions = self.run_test(
+            "Client Gets Active Sessions (Should See Own Pending)",
+            "GET",
+            "sessions/active",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get client active sessions")
+            return False
+
+        # Verify client can see their own pending session
+        client_pending_found = False
+        for session in client_active_sessions:
+            if session['id'] == session_id and session['status'] == 'pending':
+                client_pending_found = True
+                print("   ✅ Client can see their own pending session")
+                break
+        
+        if not client_pending_found:
+            print("   ❌ Client cannot see their own pending session in active sessions")
+            return False
+
+        # Clean up - end the session
+        self.run_test(
+            "End Session (Cleanup)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id, "duration_minutes": 1},
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        return True
+
+    def test_pending_sessions_visibility_scenario_2(self):
+        """Test Scenario 2: Therapist Accepts Call"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing PENDING SESSIONS - Scenario 2: Therapist Accepts Call...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        # Step 1: Client creates session
+        success, response = self.run_test(
+            "Client Starts Session (Accept Test)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+
+        # Step 2: Verify both see pending session
+        success, therapist_sessions_before = self.run_test(
+            "Therapist Active Sessions (Before Accept)",
+            "GET",
+            "sessions/active",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        pending_found_before = any(s['id'] == session_id and s['status'] == 'pending' for s in therapist_sessions_before)
+        if not pending_found_before:
+            print("   ❌ Therapist doesn't see pending session before accept")
+            return False
+
+        print("   ✅ Therapist sees pending session before accept")
+
+        # Step 3: Therapist accepts call
+        success, accept_response = self.run_test(
+            "Therapist Accepts Session",
+            "POST",
+            "sessions/accept",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to accept session")
+            return False
+
+        print("   ✅ Therapist accepted session")
+
+        # Step 4: Verify session status changed to 'active'
+        success, therapist_sessions_after = self.run_test(
+            "Therapist Active Sessions (After Accept)",
+            "GET",
+            "sessions/active",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        active_found_after = any(s['id'] == session_id and s['status'] == 'active' for s in therapist_sessions_after)
+        if not active_found_after:
+            print("   ❌ Session not showing as active after accept")
+            return False
+
+        print("   ✅ Session status changed to 'active' after accept")
+
+        # Step 5: Both check active sessions again - should still see the session (now active)
+        success, client_sessions_after = self.run_test(
+            "Client Active Sessions (After Accept)",
+            "GET",
+            "sessions/active",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        client_active_found = any(s['id'] == session_id and s['status'] == 'active' for s in client_sessions_after)
+        if not client_active_found:
+            print("   ❌ Client doesn't see active session after accept")
+            return False
+
+        print("   ✅ Both client and therapist see the session as active")
+
+        # Clean up
+        self.run_test(
+            "End Session (Cleanup)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id, "duration_minutes": 1},
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        return True
+
+    def test_pending_sessions_visibility_scenario_3(self):
+        """Test Scenario 3: Therapist Declines Pending Call"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing PENDING SESSIONS - Scenario 3: Therapist Declines Pending Call...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        # Step 1: Client creates session
+        success, response = self.run_test(
+            "Client Starts Session (Decline Test)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+
+        # Step 2: Therapist declines immediately
+        success, decline_response = self.run_test(
+            "Therapist Declines Session",
+            "POST",
+            "sessions/decline",
+            200,
+            data={
+                "session_id": session_id,
+                "reason": "Not available"
+            },
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to decline session")
+            return False
+
+        print("   ✅ Therapist declined session")
+
+        # Step 3: Verify session status='declined'
+        success, session_history = self.run_test(
+            "Get Session History (Check Declined)",
+            "GET",
+            "sessions/history",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get session history")
+            return False
+
+        # Find our session
+        current_session = None
+        for session in session_history:
+            if session['id'] == session_id:
+                current_session = session
+                break
+        
+        if not current_session or current_session['status'] != 'declined':
+            print(f"   ❌ Expected session status 'declined', got '{current_session['status'] if current_session else 'not found'}'")
+            return False
+
+        print("   ✅ Session status changed to 'declined'")
+
+        # Step 4: Verify session no longer appears in active sessions
+        success, therapist_active_sessions = self.run_test(
+            "Therapist Active Sessions (After Decline)",
+            "GET",
+            "sessions/active",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        declined_session_found = any(s['id'] == session_id for s in therapist_active_sessions)
+        if declined_session_found:
+            print("   ❌ Declined session still appears in active sessions")
+            return False
+
+        print("   ✅ Declined session no longer appears in active sessions")
+
+        # Step 5: Verify no coins charged (coins_spent should be 0)
+        if current_session.get('coins_spent', 0) != 0:
+            print(f"   ❌ Expected coins_spent=0 for declined session, got {current_session.get('coins_spent')}")
+            return False
+
+        print("   ✅ No coins charged for declined session")
+
+        return True
+
+    def test_pending_sessions_visibility_scenario_4(self):
+        """Test Scenario 4: Multiple Pending Sessions"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing PENDING SESSIONS - Scenario 4: Multiple Pending Sessions...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        session_ids = []
+
+        # Step 1: Create 3 sessions from different scenarios
+        for i in range(3):
+            success, response = self.run_test(
+                f"Create Session {i+1}",
+                "POST",
+                "sessions/start",
+                200,
+                data={
+                    "therapist_id": therapist_id,
+                    "session_type": "call"
+                },
+                headers={'Authorization': f'Bearer {self.client_token}'}
+            )
+            
+            if success and 'session_id' in response:
+                session_ids.append(response['session_id'])
+            else:
+                print(f"   Failed to create session {i+1}")
+                return False
+
+        print(f"   ✅ Created {len(session_ids)} sessions")
+
+        # Step 2: Verify therapist sees all pending sessions
+        success, therapist_active_sessions = self.run_test(
+            "Therapist Active Sessions (Multiple Pending)",
+            "GET",
+            "sessions/active",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to get therapist active sessions")
+            return False
+
+        pending_sessions_found = []
+        for session in therapist_active_sessions:
+            if session['id'] in session_ids and session['status'] == 'pending':
+                pending_sessions_found.append(session['id'])
+
+        if len(pending_sessions_found) != len(session_ids):
+            print(f"   ❌ Expected {len(session_ids)} pending sessions, found {len(pending_sessions_found)}")
+            return False
+
+        print(f"   ✅ Therapist sees all {len(session_ids)} pending sessions")
+
+        # Step 3: Accept one session
+        success, accept_response = self.run_test(
+            "Accept First Session",
+            "POST",
+            "sessions/accept",
+            200,
+            data={"session_id": session_ids[0]},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to accept first session")
+            return False
+
+        # Step 4: Decline another session
+        success, decline_response = self.run_test(
+            "Decline Second Session",
+            "POST",
+            "sessions/decline",
+            200,
+            data={
+                "session_id": session_ids[1],
+                "reason": "Busy with another client"
+            },
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to decline second session")
+            return False
+
+        # Step 5: Verify correct status updates
+        success, therapist_active_sessions_after = self.run_test(
+            "Therapist Active Sessions (After Actions)",
+            "GET",
+            "sessions/active",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to get therapist active sessions after actions")
+            return False
+
+        # Check session statuses
+        session_statuses = {}
+        for session in therapist_active_sessions_after:
+            if session['id'] in session_ids:
+                session_statuses[session['id']] = session['status']
+
+        # Session 0 should be active, session 1 should not appear (declined), session 2 should be pending
+        expected_active_sessions = 2  # session 0 (active) + session 2 (pending)
+        actual_active_sessions = len(session_statuses)
+
+        if actual_active_sessions != expected_active_sessions:
+            print(f"   ❌ Expected {expected_active_sessions} active sessions, found {actual_active_sessions}")
+            return False
+
+        # Verify specific statuses
+        if session_statuses.get(session_ids[0]) != 'active':
+            print(f"   ❌ First session should be active, got {session_statuses.get(session_ids[0])}")
+            return False
+
+        if session_ids[1] in session_statuses:
+            print("   ❌ Declined session should not appear in active sessions")
+            return False
+
+        if session_statuses.get(session_ids[2]) != 'pending':
+            print(f"   ❌ Third session should be pending, got {session_statuses.get(session_ids[2])}")
+            return False
+
+        print("   ✅ Correct status updates: accepted→active, declined→removed, pending→pending")
+
+        # Clean up - end remaining sessions
+        for session_id in [session_ids[0], session_ids[2]]:
+            self.run_test(
+                f"End Session {session_id} (Cleanup)",
+                "POST",
+                "sessions/end",
+                200,
+                data={"session_id": session_id, "duration_minutes": 1},
+                headers={'Authorization': f'Bearer {self.client_token}'}
+            )
+
+        return True
+
 def main():
-    print("🚀 Starting MindConnect NEW BILLING FEATURE Tests...")
-    print("Testing: Coin deduction only starts when therapist joins the call")
+    print("🚀 Starting MindConnect PENDING SESSIONS VISIBILITY Tests...")
+    print("Testing: Therapists can now see incoming calls (pending sessions)")
     tester = MindConnectAPITester()
     
-    # Test sequence - Focus on NEW BILLING FEATURE
+    # Test sequence - Focus on PENDING SESSIONS VISIBILITY
     tests = [
         ("Admin Login", tester.test_admin_login_for_coin_tests),
         ("Client Registration and Login", tester.test_client_registration_and_login),
         ("Therapist Registration and Login", tester.test_therapist_registration_and_login),
-        ("NEW BILLING - Normal Flow (Therapist Joins)", tester.test_billing_normal_flow_therapist_joins),
-        ("NEW BILLING - Therapist Never Joins", tester.test_billing_therapist_never_joins),
-        ("NEW BILLING - Duration Calculation", tester.test_billing_duration_calculation),
-        ("NEW BILLING - Edge Cases", tester.test_billing_edge_cases),
-        ("Transaction Records Verification", tester.test_transaction_records),
+        ("PENDING SESSIONS - Scenario 1: Client Starts Call, Therapist Sees It", tester.test_pending_sessions_visibility_scenario_1),
+        ("PENDING SESSIONS - Scenario 2: Therapist Accepts Call", tester.test_pending_sessions_visibility_scenario_2),
+        ("PENDING SESSIONS - Scenario 3: Therapist Declines Pending Call", tester.test_pending_sessions_visibility_scenario_3),
+        ("PENDING SESSIONS - Scenario 4: Multiple Pending Sessions", tester.test_pending_sessions_visibility_scenario_4),
     ]
     
     failed_tests = []
