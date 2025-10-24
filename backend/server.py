@@ -418,7 +418,7 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     # Record transactions
     await db.transactions.insert_one({
         "id": str(uuid.uuid4()),
-        "user_id": current_user["id"],
+        "user_id": session["client_id"],
         "type": "deduction",
         "amount": coins_spent,
         "description": f"Session with therapist",
