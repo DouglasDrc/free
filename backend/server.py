@@ -405,7 +405,7 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     
     # Deduct coins from client
     await db.users.update_one(
-        {"id": current_user["id"]},
+        {"id": session["client_id"]},
         {"$inc": {"coins": -coins_spent}}
     )
     
