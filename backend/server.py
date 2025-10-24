@@ -614,34 +614,45 @@ async def get_reviews(therapist_id: str):
     reviews = await db.reviews.find({"therapist_id": therapist_id}, {"_id": 0}).to_list(100)
     return reviews
 
-# ============= Agora Token Route =============
-@api_router.get("/agora/token")
-async def generate_agora_token(channel_name: str, user_id: int, current_user: dict = Depends(get_current_user)):
-    if not AGORA_APP_ID or not AGORA_APP_CERTIFICATE:
-        raise HTTPException(status_code=500, detail="Agora credentials not configured")
+# ============= Twilio Video Token Route =============
+@api_router.get("/twilio/token")
+async def generate_twilio_token(room_name: str, current_user: dict = Depends(get_current_user)):
+    if not TWILIO_ACCOUNT_SID or not TWILIO_API_KEY or not TWILIO_API_SECRET:
+        raise HTTPException(status_code=500, detail="Twilio credentials not configured")
     
-    expiration_time_in_seconds = 3600  # 1 hour
-    current_timestamp = int(time.time())
-    privilege_expired_ts = current_timestamp + expiration_time_in_seconds
-    
-    # Role: 1 = Publisher (can send/receive), 2 = Subscriber (receive only)
-    role = 1
-    
-    token = RtcTokenBuilder.buildTokenWithUid(
-        AGORA_APP_ID,
-        AGORA_APP_CERTIFICATE,
-        channel_name,
-        user_id,
-        role,
-        privilege_expired_ts
-    )
-    
-    return {
-        "token": token,
-        "channel_name": channel_name,
-        "uid": user_id,
-        "app_id": AGORA_APP_ID
-    }
+    try:
+        # Create or get room
+        try:
+            room = twilio_client.video.v1.rooms(room_name).fetch()
+        except:
+            # Create room if it doesn't exist
+            room = twilio_client.video.v1.rooms.create(
+                unique_name=room_name,
+                type='peer-to-peer',
+                max_participants=2
+            )
+        
+        # Generate access token
+        token = AccessToken(
+            TWILIO_ACCOUNT_SID,
+            TWILIO_API_KEY,
+            TWILIO_API_SECRET,
+            identity=current_user["id"],
+            ttl=3600  # 1 hour
+        )
+        
+        # Add video grant
+        video_grant = VideoGrant(room=room_name)
+        token.add_grant(video_grant)
+        
+        return {
+            "token": token.to_jwt(),
+            "room_name": room_name,
+            "room_sid": room.sid,
+            "identity": current_user["id"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate token: {str(e)}")
 
 # ============= Admin Routes =============
 @api_router.get("/admin/analytics")
