@@ -307,39 +307,31 @@ const TherapistDashboard = () => {
       />
       
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
-      {/* Navbar */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-purple-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-              <Video className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold">MindConnect</span>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Active Calls Badge */}
-            {activeSessions.length > 0 && (
-              <div className="relative">
-                <Phone className="w-6 h-6 text-green-600 animate-bounce" />
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                  {activeSessions.length}
-                </span>
-              </div>
-            )}
-            <div className="flex items-center gap-3">
+      {/* Mobile-Friendly Navbar */}
+      <MobileNav 
+        user={user}
+        balance={balance}
+        onLogout={handleLogout}
+        showRecharge={false}
+      />
+      
+      {/* Therapist Controls - Mobile Friendly */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-purple-100">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            {/* Status Toggle */}
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-center">
               <span className="text-sm font-medium">Status:</span>
               <Switch checked={status === 'online'} onCheckedChange={(checked) => handleStatusChange(checked ? 'online' : 'offline')} data-testid="therapist-online-toggle" />
               <span className={`text-sm font-semibold ${status === 'online' ? 'text-green-600' : 'text-gray-500'}`}>
                 {status === 'online' ? 'Online' : 'Offline'}
               </span>
             </div>
-            <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-xl" data-testid="therapist-earnings">
-              <Wallet className="w-5 h-5" />
-              <span className="font-semibold">{balance} coins</span>
-            </div>
+            
+            {/* Edit Profile Button */}
             <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
               <DialogTrigger asChild>
-                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto">
                   Edit Profile
                 </Button>
               </DialogTrigger>
