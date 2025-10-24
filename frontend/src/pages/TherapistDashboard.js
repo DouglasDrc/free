@@ -292,7 +292,15 @@ const TherapistDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+    <>
+      {/* Full-Screen Incoming Call Modal */}
+      <IncomingCallModal 
+        session={showIncomingCall}
+        onAccept={handleAcceptCallFromModal}
+        onDecline={handleDeclineCallFromModal}
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       {/* Navbar */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-purple-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
