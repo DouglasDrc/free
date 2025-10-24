@@ -621,18 +621,7 @@ async def generate_twilio_token(room_name: str, current_user: dict = Depends(get
         raise HTTPException(status_code=500, detail="Twilio credentials not configured")
     
     try:
-        # Create or get room
-        try:
-            room = twilio_client.video.v1.rooms(room_name).fetch()
-        except:
-            # Create room if it doesn't exist
-            room = twilio_client.video.v1.rooms.create(
-                unique_name=room_name,
-                type='peer-to-peer',
-                max_participants=2
-            )
-        
-        # Generate access token
+        # Generate access token (room will be created automatically by Twilio when first user joins)
         token = AccessToken(
             TWILIO_ACCOUNT_SID,
             TWILIO_API_KEY,
@@ -648,7 +637,6 @@ async def generate_twilio_token(room_name: str, current_user: dict = Depends(get
         return {
             "token": token.to_jwt(),
             "room_name": room_name,
-            "room_sid": room.sid,
             "identity": current_user["id"]
         }
     except Exception as e:
