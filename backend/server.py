@@ -32,9 +32,14 @@ SECRET_KEY = os.getenv("JWT_SECRET", "mindconnect_secret_key_change_in_productio
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
-# Agora credentials
-AGORA_APP_ID = os.getenv("AGORA_APP_ID", "01673ba6d1184a439847d2952c973b42")
-AGORA_APP_CERTIFICATE = os.getenv("AGORA_APP_CERTIFICATE", "ffe5317d96354867b8975dbe78d15b42")
+# Twilio credentials
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_API_KEY = os.getenv("TWILIO_API_KEY_SID")
+TWILIO_API_SECRET = os.getenv("TWILIO_API_KEY_SECRET")
+
+# Initialize Twilio client
+twilio_client = TwilioClient(TWILIO_API_KEY, TWILIO_API_SECRET, TWILIO_ACCOUNT_SID)
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
