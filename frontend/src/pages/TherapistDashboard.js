@@ -244,6 +244,11 @@ const TherapistDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
