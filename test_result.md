@@ -120,15 +120,18 @@ backend:
 frontend:
   - task: "Balance display in wallet"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/MobileNav.js, /app/frontend/src/pages/ClientDashboard.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "User reports -160 balance display. Backend is verified accurate. Suspect frontend caching, state management, or display refresh issue. Need to test: balance refresh after recharge, balance update after session end, state synchronization."
+        - working: true
+          agent: "testing"
+          comment: "COMPREHENSIVE FRONTEND TESTING COMPLETED: ✅ Balance display working correctly - shows 2300 coins accurately in desktop header. ✅ Balance API calls successful (200 status). ✅ Balance persists after page refresh. ✅ Recharge functionality working (shows success messages). ✅ No -160 balance found in current testing. ✅ Transaction history shows detailed records with proper +/- amounts. ✅ No JavaScript errors affecting balance display. ✅ No stale balance data in localStorage. Minor: Mobile hamburger menu has visibility issues on small screens (375px), but desktop and tablet views work perfectly. The user's reported -160 balance issue was not reproducible in current testing - balance calculations and display are functioning correctly."
 
   - task: "Transaction history display"
     implemented: true
