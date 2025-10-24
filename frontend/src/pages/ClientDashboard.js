@@ -23,6 +23,7 @@ const ClientDashboard = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [loading, setLoading] = useState(false);
   const [showRechargeDialog, setShowRechargeDialog] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
