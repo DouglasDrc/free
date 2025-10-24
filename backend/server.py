@@ -616,9 +616,11 @@ async def recharge_package(package_id: str, current_user: dict = Depends(get_cur
     package = packages[package_id]
     
     # Mock payment - just add coins
-    await db.users.update_one(
+    result = await db.users.find_one_and_update(
         {"id": current_user["id"]},
-        {"$inc": {"coins": package["coins"]}}
+        {"$inc": {"coins": package["coins"]}},
+        return_document=True,
+        projection={"_id": 0}
     )
     
     # Record transaction
@@ -631,7 +633,8 @@ async def recharge_package(package_id: str, current_user: dict = Depends(get_cur
         "timestamp": datetime.now(timezone.utc).isoformat()
     })
     
-    return {"message": f"Successfully recharged {package['coins']} coins", "new_balance": current_user.get("coins", 0) + package["coins"]}
+    new_balance = result.get("coins", 0) if result else 0
+    return {"message": f"Successfully recharged {package['coins']} coins", "new_balance": new_balance}
 
 @api_router.get("/coins/transactions")
 async def get_transactions(current_user: dict = Depends(get_current_user)):
