@@ -510,8 +510,8 @@ async def decline_session(decline_data: SessionDecline, current_user: dict = Dep
     if session["therapist_id"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    if session["status"] != "active":
-        raise HTTPException(status_code=400, detail="Session is not active")
+    if session["status"] not in ["pending", "active"]:
+        raise HTTPException(status_code=400, detail="Session cannot be declined")
     
     # Update session to declined status
     await db.sessions.update_one(
