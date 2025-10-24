@@ -11,6 +11,7 @@ import { Video, LogOut, Wallet, Search, Star, Clock, Phone, MessageCircle, Coins
 import MobileNav from '../components/MobileNav';
 import UserProfileEdit from '../components/UserProfileEdit';
 import TransactionHistory from '../components/TransactionHistory';
+import CallHistory from '../components/CallHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
