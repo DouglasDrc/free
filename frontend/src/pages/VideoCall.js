@@ -241,6 +241,48 @@ const VideoCall = () => {
     }
   };
 
+  const endSessionOnBackend = async () => {
+    if (hasEndedRef.current) return;
+    hasEndedRef.current = true;
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Use sendBeacon for reliable request on page unload
+      const data = JSON.stringify({ session_id: sessionId });
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = `${API}/sessions/end`;
+      
+      // Try sendBeacon first (works on page unload)
+      if (navigator.sendBeacon) {
+        const formData = new FormData();
+        formData.append('session_id', sessionId);
+        
+        // Fallback to fetch with keepalive
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: data,
+          keepalive: true
+        }).catch(err => console.error('End session error:', err));
+      } else {
+        // Synchronous XHR as last resort
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, false); // false = synchronous
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(data);
+      }
+      
+      console.log('Session ended on backend');
+    } catch (error) {
+      console.error('Failed to end session on backend:', error);
+    }
+  };
+
   const toggleMute = () => {
     if (room) {
       room.localParticipant.audioTracks.forEach(publication => {
