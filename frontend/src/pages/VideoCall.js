@@ -36,11 +36,36 @@ const VideoCall = () => {
       setCallDuration(elapsed);
     }, 1000);
 
+    // Handle browser back button and page unload
+    const handleBeforeUnload = (e) => {
+      if (!hasEndedRef.current) {
+        endSessionOnBackend();
+      }
+    };
+
+    const handlePopState = (e) => {
+      if (!hasEndedRef.current) {
+        endSessionOnBackend();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
     return () => {
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
       }
+      
+      // End session if not already ended
+      if (!hasEndedRef.current) {
+        endSessionOnBackend();
+      }
+      
       cleanupTwilio();
+      
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []);
 
