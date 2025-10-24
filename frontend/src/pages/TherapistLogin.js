@@ -20,8 +20,15 @@ const TherapistLogin = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API}/auth/login`, formData);
-      const { access_token, user } = response.data;
+      const response = await axios.post(`${API}/auth/login?email=${formData.email}&password=${formData.password}`);
+      const { access_token } = response.data;
+      
+      // Get user profile to verify role
+      const profileRes = await axios.get(`${API}/users/me`, {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      
+      const user = profileRes.data;
       
       // Verify user is actually a therapist
       if (user.role !== 'therapist') {
@@ -35,6 +42,7 @@ const TherapistLogin = () => {
       navigate('/therapist');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Invalid credentials');
+    } finally {
       setLoading(false);
     }
   };
