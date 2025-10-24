@@ -1922,12 +1922,12 @@ def main():
         try:
             if not test_func():
                 failed_tests.append(test_name)
-                if "NEW BILLING" in test_name:
+                if "PENDING SESSIONS" in test_name:
                     critical_failed = True
         except Exception as e:
             print(f"❌ {test_name} failed with exception: {str(e)}")
             failed_tests.append(test_name)
-            if "NEW BILLING" in test_name:
+            if "PENDING SESSIONS" in test_name:
                 critical_failed = True
     
     # Print results
@@ -1936,14 +1936,14 @@ def main():
     print(f"Success rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
     if critical_failed:
-        print(f"\n🚨 NEW BILLING FEATURE TESTS FAILED!")
+        print(f"\n🚨 PENDING SESSIONS VISIBILITY TESTS FAILED!")
         print(f"❌ Failed tests: {', '.join(failed_tests)}")
         return 1
     elif failed_tests:
         print(f"\n⚠️  Some tests failed: {', '.join(failed_tests)}")
         return 1
     else:
-        print(f"\n✅ All NEW BILLING FEATURE tests passed!")
+        print(f"\n✅ All PENDING SESSIONS VISIBILITY tests passed!")
         return 0
 
 if __name__ == "__main__":
