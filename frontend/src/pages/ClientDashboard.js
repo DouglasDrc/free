@@ -25,6 +25,7 @@ const ClientDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [showRechargeDialog, setShowRechargeDialog] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [showTransactions, setShowTransactions] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
