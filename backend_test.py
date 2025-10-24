@@ -350,6 +350,271 @@ class MindConnectAPITester:
         )
         return success and 'coins' in response
 
+    def get_user_balance(self, token):
+        """Helper method to get user balance"""
+        try:
+            response = requests.get(
+                f"{self.base_url}/users/balance",
+                headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+            )
+            if response.status_code == 200:
+                return response.json().get('coins', 0)
+        except:
+            pass
+        return None
+
+    def get_therapist_call_rate(self, therapist_token):
+        """Helper method to get therapist call rate"""
+        try:
+            response = requests.get(
+                f"{self.base_url}/therapists/profile/me",
+                headers={'Authorization': f'Bearer {therapist_token}', 'Content-Type': 'application/json'}
+            )
+            if response.status_code == 200:
+                return response.json().get('call_rate', 150)
+        except:
+            pass
+        return 150  # Default rate
+
+    def add_coins_to_client(self, client_user_id, amount=2000):
+        """Helper method to add coins to client via admin"""
+        if not self.admin_token:
+            return False
+        
+        success, response = self.run_test(
+            f"Admin Add {amount} Coins to Client",
+            "PATCH",
+            f"admin/users/{client_user_id}/balance",
+            200,
+            data=amount,
+            headers={'Authorization': f'Bearer {self.admin_token}'}
+        )
+        return success
+
+    def get_user_id_from_token(self, token):
+        """Helper method to extract user ID from JWT token"""
+        import jwt
+        try:
+            payload = jwt.decode(token, options={"verify_signature": False})
+            return payload.get("sub")
+        except:
+            return None
+
+    def test_coin_deduction_client_ends_session(self):
+        """Test coin deduction when CLIENT ends the session"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing Coin Deduction - Client Ends Session...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        # Get initial balances
+        client_initial = self.get_user_balance(self.client_token)
+        therapist_initial = self.get_user_balance(self.therapist_token)
+        therapist_rate = self.get_therapist_call_rate(self.therapist_token)
+        
+        if client_initial is None or therapist_initial is None:
+            print("   Failed to get initial balances")
+            return False
+
+        print(f"   Initial - Client: {client_initial} coins, Therapist: {therapist_initial} coins")
+        print(f"   Therapist call rate: {therapist_rate} coins/minute")
+
+        # Start session
+        success, response = self.run_test(
+            "Start Session (Client Ends Test)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+        duration_minutes = 5
+
+        # Client ends session
+        success, response = self.run_test(
+            "End Session (by Client)",
+            "POST",
+            "sessions/end",
+            200,
+            data={
+                "session_id": session_id,
+                "duration_minutes": duration_minutes
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        if not success:
+            print("   Failed to end session")
+            return False
+
+        # Get final balances
+        client_final = self.get_user_balance(self.client_token)
+        therapist_final = self.get_user_balance(self.therapist_token)
+
+        if client_final is None or therapist_final is None:
+            print("   Failed to get final balances")
+            return False
+
+        print(f"   Final - Client: {client_final} coins, Therapist: {therapist_final} coins")
+
+        # Calculate expected changes
+        expected_client_deduction = duration_minutes * therapist_rate
+        expected_therapist_earning = duration_minutes * 30
+
+        client_change = client_initial - client_final
+        therapist_change = therapist_final - therapist_initial
+
+        print(f"   Expected - Client deduction: {expected_client_deduction}, Therapist earning: {expected_therapist_earning}")
+        print(f"   Actual - Client change: {client_change}, Therapist change: {therapist_change}")
+
+        # Verify correct deductions
+        if client_change == expected_client_deduction and therapist_change == expected_therapist_earning:
+            print("✅ Coin deduction working correctly when client ends session")
+            return True
+        else:
+            print("❌ Incorrect coin deduction amounts")
+            return False
+
+    def test_coin_deduction_therapist_ends_session(self):
+        """Test coin deduction when THERAPIST ends the session (CRITICAL TEST)"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing Coin Deduction - Therapist Ends Session (CRITICAL)...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        # Get initial balances
+        client_initial = self.get_user_balance(self.client_token)
+        therapist_initial = self.get_user_balance(self.therapist_token)
+        therapist_rate = self.get_therapist_call_rate(self.therapist_token)
+        
+        if client_initial is None or therapist_initial is None:
+            print("   Failed to get initial balances")
+            return False
+
+        print(f"   Initial - Client: {client_initial} coins, Therapist: {therapist_initial} coins")
+        print(f"   Therapist call rate: {therapist_rate} coins/minute")
+
+        # Start session
+        success, response = self.run_test(
+            "Start Session (Therapist Ends Test)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+        duration_minutes = 3
+
+        # THERAPIST ends session (this is the critical test)
+        success, response = self.run_test(
+            "End Session (by Therapist - CRITICAL)",
+            "POST",
+            "sessions/end",
+            200,
+            data={
+                "session_id": session_id,
+                "duration_minutes": duration_minutes
+            },
+            headers={'Authorization': f'Bearer {self.therapist_token}'}  # Using therapist token!
+        )
+
+        if not success:
+            print("   Failed to end session")
+            return False
+
+        # Get final balances
+        client_final = self.get_user_balance(self.client_token)
+        therapist_final = self.get_user_balance(self.therapist_token)
+
+        if client_final is None or therapist_final is None:
+            print("   Failed to get final balances")
+            return False
+
+        print(f"   Final - Client: {client_final} coins, Therapist: {therapist_final} coins")
+
+        # Calculate expected changes
+        expected_client_deduction = duration_minutes * therapist_rate
+        expected_therapist_earning = duration_minutes * 30
+
+        client_change = client_initial - client_final
+        therapist_change = therapist_final - therapist_initial
+
+        print(f"   Expected - Client deduction: {expected_client_deduction}, Therapist earning: {expected_therapist_earning}")
+        print(f"   Actual - Client change: {client_change}, Therapist change: {therapist_change}")
+
+        # CRITICAL: Verify that client lost coins and therapist gained coins (not the other way around)
+        if client_change == expected_client_deduction and therapist_change == expected_therapist_earning:
+            print("✅ CRITICAL TEST PASSED: Coins correctly deducted from CLIENT even when therapist ends session")
+            return True
+        elif client_change < 0:  # Client gained coins (wrong!)
+            print("❌ CRITICAL BUG: Client gained coins when therapist ended session!")
+            return False
+        elif therapist_change < 0:  # Therapist lost coins (wrong!)
+            print("❌ CRITICAL BUG: Therapist lost coins when ending session!")
+            return False
+        else:
+            print("❌ Incorrect coin deduction amounts")
+            return False
+
+    def test_admin_login_for_coin_tests(self):
+        """Test admin login for coin testing"""
+        success, response = self.run_test(
+            "Admin Login",
+            "POST",
+            "auth/login?email=admin@mindconnect.com&password=admin123",
+            200
+        )
+        if success and 'access_token' in response:
+            self.admin_token = response['access_token']
+            return True
+        return False
+
 def main():
     print("🚀 Starting MindConnect API Tests...")
     tester = MindConnectAPITester()
