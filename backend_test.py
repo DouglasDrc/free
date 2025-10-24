@@ -743,6 +743,633 @@ class MindConnectAPITester:
             print("❌ No new transactions created")
             return False
 
+    # ============= NEW BILLING FEATURE TESTS =============
+    
+    def test_billing_normal_flow_therapist_joins(self):
+        """Test Scenario 1: Normal Flow - Therapist Joins"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing NEW BILLING FEATURE - Normal Flow (Therapist Joins)...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        # Get initial balances
+        client_initial = self.get_user_balance(self.client_token)
+        therapist_initial = self.get_user_balance(self.therapist_token)
+        
+        if client_initial is None or therapist_initial is None:
+            print("   Failed to get initial balances")
+            return False
+
+        print(f"   Initial - Client: {client_initial} coins, Therapist: {therapist_initial} coins")
+
+        # Step 1: Client creates session
+        success, response = self.run_test(
+            "Start Session (Pending Status)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+        print(f"   Session created: {session_id}")
+
+        # Step 2: Verify session is in 'pending' status with therapist_joined_time=null
+        success, session_history = self.run_test(
+            "Get Session History (Check Pending)",
+            "GET",
+            "sessions/history",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get session history")
+            return False
+
+        # Find our session
+        current_session = None
+        for session in session_history:
+            if session['id'] == session_id:
+                current_session = session
+                break
+        
+        if not current_session:
+            print("   Session not found in history")
+            return False
+
+        if current_session['status'] != 'pending':
+            print(f"   ❌ Expected status 'pending', got '{current_session['status']}'")
+            return False
+
+        if current_session.get('therapist_joined_time') is not None:
+            print(f"   ❌ Expected therapist_joined_time=null, got '{current_session.get('therapist_joined_time')}'")
+            return False
+
+        print("   ✅ Session created with status='pending', therapist_joined_time=null")
+
+        # Step 3: Therapist accepts session
+        import time
+        accept_time_before = time.time()
+        
+        success, accept_response = self.run_test(
+            "Therapist Accepts Session",
+            "POST",
+            "sessions/accept",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        accept_time_after = time.time()
+        
+        if not success:
+            print("   Failed to accept session")
+            return False
+
+        print(f"   ✅ Therapist accepted session: {accept_response}")
+
+        # Step 4: Verify session status changed to 'active' and therapist_joined_time is set
+        success, session_history = self.run_test(
+            "Get Session History (Check Active)",
+            "GET",
+            "sessions/history",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get session history after accept")
+            return False
+
+        # Find our session again
+        current_session = None
+        for session in session_history:
+            if session['id'] == session_id:
+                current_session = session
+                break
+        
+        if not current_session:
+            print("   Session not found in history after accept")
+            return False
+
+        if current_session['status'] != 'active':
+            print(f"   ❌ Expected status 'active', got '{current_session['status']}'")
+            return False
+
+        if current_session.get('therapist_joined_time') is None:
+            print(f"   ❌ Expected therapist_joined_time to be set, got null")
+            return False
+
+        print("   ✅ Session status changed to 'active', therapist_joined_time is set")
+
+        # Step 5: Wait a few seconds to simulate session duration
+        print("   Waiting 3 seconds to simulate session duration...")
+        time.sleep(3)
+
+        # Step 6: End session
+        success, end_response = self.run_test(
+            "End Session (After Therapist Joined)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id, "duration_minutes": 1},  # This should be ignored, backend calculates
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        if not success:
+            print("   Failed to end session")
+            return False
+
+        print(f"   ✅ Session ended: {end_response}")
+
+        # Step 7: Verify duration calculated from therapist_joined_time and billing applied
+        final_client_balance = self.get_user_balance(self.client_token)
+        final_therapist_balance = self.get_user_balance(self.therapist_token)
+
+        if final_client_balance is None or final_therapist_balance is None:
+            print("   Failed to get final balances")
+            return False
+
+        client_change = client_initial - final_client_balance
+        therapist_change = final_therapist_balance - therapist_initial
+
+        print(f"   Final - Client: {final_client_balance} coins (change: -{client_change})")
+        print(f"   Final - Therapist: {final_therapist_balance} coins (change: +{therapist_change})")
+
+        # Verify billing occurred (minimum 1 minute charge)
+        if client_change > 0 and therapist_change > 0:
+            print("   ✅ Billing applied correctly after therapist joined")
+            return True
+        else:
+            print("   ❌ No billing applied or incorrect amounts")
+            return False
+
+    def test_billing_therapist_never_joins(self):
+        """Test Scenario 2: Therapist Never Joins"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing NEW BILLING FEATURE - Therapist Never Joins...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        # Get initial balances
+        client_initial = self.get_user_balance(self.client_token)
+        therapist_initial = self.get_user_balance(self.therapist_token)
+        
+        if client_initial is None or therapist_initial is None:
+            print("   Failed to get initial balances")
+            return False
+
+        print(f"   Initial - Client: {client_initial} coins, Therapist: {therapist_initial} coins")
+
+        # Step 1: Client creates session
+        success, response = self.run_test(
+            "Start Session (No Therapist Join)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+        print(f"   Session created: {session_id}")
+
+        # Step 2: Verify session status='pending'
+        success, session_history = self.run_test(
+            "Get Session History (Check Pending)",
+            "GET",
+            "sessions/history",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get session history")
+            return False
+
+        # Find our session
+        current_session = None
+        for session in session_history:
+            if session['id'] == session_id:
+                current_session = session
+                break
+        
+        if not current_session or current_session['status'] != 'pending':
+            print("   ❌ Session not in pending status")
+            return False
+
+        print("   ✅ Session status='pending'")
+
+        # Step 3: WITHOUT calling /api/sessions/accept, end the session
+        success, end_response = self.run_test(
+            "End Session (Therapist Never Joined)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id, "duration_minutes": 5},  # This should be ignored
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        if not success:
+            print("   Failed to end session")
+            return False
+
+        print(f"   ✅ Session ended: {end_response}")
+
+        # Step 4: Verify session status='cancelled', coins_spent=0
+        success, session_history = self.run_test(
+            "Get Session History (Check Cancelled)",
+            "GET",
+            "sessions/history",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get session history after end")
+            return False
+
+        # Find our session again
+        current_session = None
+        for session in session_history:
+            if session['id'] == session_id:
+                current_session = session
+                break
+        
+        if not current_session:
+            print("   Session not found in history after end")
+            return False
+
+        if current_session['status'] != 'cancelled':
+            print(f"   ❌ Expected status 'cancelled', got '{current_session['status']}'")
+            return False
+
+        if current_session.get('coins_spent', 0) != 0:
+            print(f"   ❌ Expected coins_spent=0, got '{current_session.get('coins_spent')}'")
+            return False
+
+        print("   ✅ Session status='cancelled', coins_spent=0")
+
+        # Step 5: Verify no coins deducted from client, no coins earned by therapist
+        final_client_balance = self.get_user_balance(self.client_token)
+        final_therapist_balance = self.get_user_balance(self.therapist_token)
+
+        if final_client_balance is None or final_therapist_balance is None:
+            print("   Failed to get final balances")
+            return False
+
+        client_change = client_initial - final_client_balance
+        therapist_change = final_therapist_balance - therapist_initial
+
+        print(f"   Final - Client: {final_client_balance} coins (change: {client_change})")
+        print(f"   Final - Therapist: {final_therapist_balance} coins (change: {therapist_change})")
+
+        # Verify no billing occurred
+        if client_change == 0 and therapist_change == 0:
+            print("   ✅ No coins deducted from client, no coins earned by therapist")
+            return True
+        else:
+            print("   ❌ Unexpected coin changes when therapist never joined")
+            return False
+
+    def test_billing_duration_calculation(self):
+        """Test Scenario 3: Duration Calculation"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing NEW BILLING FEATURE - Duration Calculation...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+
+        # Get therapist call rate
+        therapist_rate = self.get_therapist_call_rate(self.therapist_token)
+        print(f"   Therapist call rate: {therapist_rate} coins/minute")
+
+        # Step 1: Create session
+        success, response = self.run_test(
+            "Start Session (Duration Test)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+
+        # Step 2: Therapist accepts (note the time)
+        import time
+        accept_start_time = time.time()
+        
+        success, accept_response = self.run_test(
+            "Therapist Accepts (Duration Test)",
+            "POST",
+            "sessions/accept",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to accept session")
+            return False
+
+        print(f"   Therapist accepted at: {accept_start_time}")
+
+        # Step 3: Wait 4+ seconds
+        print("   Waiting 4 seconds...")
+        time.sleep(4)
+
+        # Step 4: End session
+        end_time = time.time()
+        actual_duration_seconds = end_time - accept_start_time
+        expected_duration_minutes = int(actual_duration_seconds / 60) + (1 if actual_duration_seconds % 60 > 0 else 0)
+        
+        # Minimum 1 minute billing
+        if expected_duration_minutes < 1:
+            expected_duration_minutes = 1
+
+        print(f"   Actual duration: {actual_duration_seconds:.1f} seconds")
+        print(f"   Expected billing duration: {expected_duration_minutes} minutes")
+
+        success, end_response = self.run_test(
+            "End Session (Duration Test)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id, "duration_minutes": 999},  # This should be ignored
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        if not success:
+            print("   Failed to end session")
+            return False
+
+        # Step 5: Verify duration calculated matches actual time between accept and end
+        success, session_history = self.run_test(
+            "Get Session History (Check Duration)",
+            "GET",
+            "sessions/history",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   Failed to get session history")
+            return False
+
+        # Find our session
+        current_session = None
+        for session in session_history:
+            if session['id'] == session_id:
+                current_session = session
+                break
+        
+        if not current_session:
+            print("   Session not found in history")
+            return False
+
+        actual_billed_duration = current_session.get('duration_minutes', 0)
+        actual_coins_spent = current_session.get('coins_spent', 0)
+        expected_coins_spent = expected_duration_minutes * therapist_rate
+
+        print(f"   Billed duration: {actual_billed_duration} minutes")
+        print(f"   Coins spent: {actual_coins_spent}")
+        print(f"   Expected coins: {expected_coins_spent}")
+
+        # Verify minimum 1 minute billing even for short calls
+        if actual_billed_duration >= 1 and actual_coins_spent == expected_coins_spent:
+            print("   ✅ Duration calculated correctly with minimum 1 minute billing")
+            return True
+        else:
+            print("   ❌ Incorrect duration calculation or billing")
+            return False
+
+    def test_billing_edge_cases(self):
+        """Test Scenario 4: Edge Cases"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing NEW BILLING FEATURE - Edge Cases...")
+        
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        
+        if not client_id or not therapist_id:
+            print("   Failed to extract user IDs from tokens")
+            return False
+
+        # Test Case 1: Try to accept already active session (should fail)
+        print("\n   Test Case 1: Try to accept already active session...")
+        
+        # Create and accept a session first
+        success, response = self.run_test(
+            "Start Session (Edge Case 1)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session for edge case 1")
+            return False
+
+        session_id = response['session_id']
+
+        # Accept the session
+        success, accept_response = self.run_test(
+            "Therapist Accepts Session (Edge Case 1)",
+            "POST",
+            "sessions/accept",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to accept session for edge case 1")
+            return False
+
+        # Try to accept again (should fail)
+        success, fail_response = self.run_test(
+            "Try to Accept Already Active Session (Should Fail)",
+            "POST",
+            "sessions/accept",
+            400,  # Expecting 400 error
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if success:
+            print("   ✅ Correctly rejected attempt to accept already active session")
+        else:
+            print("   ❌ Should have rejected attempt to accept already active session")
+            return False
+
+        # Clean up - end the session
+        self.run_test(
+            "End Session (Edge Case 1 Cleanup)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id, "duration_minutes": 1},
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        # Test Case 2: Try to accept as client (should fail)
+        print("\n   Test Case 2: Try to accept as client...")
+        
+        # Create a new session
+        success, response = self.run_test(
+            "Start Session (Edge Case 2)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session for edge case 2")
+            return False
+
+        session_id2 = response['session_id']
+
+        # Try to accept as client (should fail)
+        success, fail_response = self.run_test(
+            "Try to Accept as Client (Should Fail)",
+            "POST",
+            "sessions/accept",
+            403,  # Expecting 403 error
+            data={"session_id": session_id2},
+            headers={'Authorization': f'Bearer {self.client_token}'}  # Using client token!
+        )
+
+        if success:
+            print("   ✅ Correctly rejected client attempt to accept session")
+        else:
+            print("   ❌ Should have rejected client attempt to accept session")
+            return False
+
+        # Test Case 3: Check if session can be ended before therapist joins
+        print("\n   Test Case 3: End session before therapist joins...")
+        
+        # End the session without therapist accepting
+        success, end_response = self.run_test(
+            "End Session Before Therapist Joins",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id2, "duration_minutes": 5},
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        if success:
+            print("   ✅ Successfully ended session before therapist joined")
+            
+            # Verify it was cancelled with no charge
+            success, session_history = self.run_test(
+                "Get Session History (Edge Case 3)",
+                "GET",
+                "sessions/history",
+                200,
+                headers={'Authorization': f'Bearer {self.client_token}'}
+            )
+            
+            if success:
+                # Find our session
+                current_session = None
+                for session in session_history:
+                    if session['id'] == session_id2:
+                        current_session = session
+                        break
+                
+                if current_session and current_session['status'] == 'cancelled' and current_session.get('coins_spent', 0) == 0:
+                    print("   ✅ Session correctly cancelled with no charge")
+                    return True
+                else:
+                    print("   ❌ Session not properly cancelled or charged incorrectly")
+                    return False
+            else:
+                print("   ❌ Failed to get session history for verification")
+                return False
+        else:
+            print("   ❌ Failed to end session before therapist joined")
+            return False
+
 def main():
     print("🚀 Starting MindConnect Coin Deduction Fix Tests...")
     tester = MindConnectAPITester()
