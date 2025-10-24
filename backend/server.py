@@ -255,6 +255,40 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
 async def get_balance(current_user: dict = Depends(get_current_user)):
     return {"coins": current_user.get("coins", 0)}
 
+@api_router.patch("/users/me")
+async def update_user_profile(update_data: UserUpdate, current_user: dict = Depends(get_current_user)):
+    """Update user profile (name, email, phone)"""
+    update_fields = {}
+    
+    if update_data.name is not None:
+        update_fields["name"] = update_data.name
+    
+    if update_data.email is not None:
+        # Check if email already exists for another user
+        existing_user = await db.users.find_one({"email": update_data.email, "id": {"$ne": current_user["id"]}})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already in use")
+        update_fields["email"] = update_data.email
+    
+    if update_data.phone is not None:
+        update_fields["phone"] = update_data.phone
+    
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    # Update user
+    result = await db.users.find_one_and_update(
+        {"id": current_user["id"]},
+        {"$set": update_fields},
+        return_document=True,
+        projection={"_id": 0, "password": 0}
+    )
+    
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "Profile updated successfully", "user": result}
+
 # ============= Therapist Routes =============
 @api_router.get("/therapists/profile/me")
 async def get_my_therapist_profile(current_user: dict = Depends(get_current_user)):
