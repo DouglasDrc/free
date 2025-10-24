@@ -14,6 +14,7 @@ import { Video, LogOut, Wallet, TrendingUp, Users, Clock, Phone, X } from 'lucid
 import IncomingCallModal from '../components/IncomingCallModal';
 import MobileNav from '../components/MobileNav';
 import UserProfileEdit from '../components/UserProfileEdit';
+import TransactionHistory from '../components/TransactionHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
