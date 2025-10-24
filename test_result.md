@@ -153,6 +153,18 @@ backend:
           agent: "testing"
           comment: "CRITICAL BUG FIX VERIFIED: Comprehensive testing completed successfully. ✅ Client ending session: Coins correctly deducted from client (750 coins for 5min at 150/min rate), therapist earned 150 coins (30/min). ✅ CRITICAL TEST PASSED: Therapist ending session still deducts from CLIENT (450 coins for 3min), NOT from therapist. ✅ Transaction records created correctly with proper user_ids and types (deduction for client, earning for therapist). ✅ Calculations accurate based on therapist call_rate and fixed 30 coins/min for therapist earnings. The fix is working perfectly - coins always deducted from session['client_id'] regardless of who ends the session."
 
+  - task: "Billing starts only when therapist joins"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/src/pages/VideoCall.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "NEW FEATURE IMPLEMENTED: Coin deduction now only starts when therapist actually joins the call. Changes: 1) Added 'therapist_joined_time' field to sessions. 2) Session status is 'pending' until therapist joins, then 'active'. 3) New endpoint POST /api/sessions/accept for therapist to mark join time. 4) Backend calculates duration from therapist_joined_time to end_time (auto-calculated, no manual input). 5) If therapist never joins, session ends with status 'cancelled' and no charge. 6) Frontend VideoCall.js calls accept endpoint when therapist joins. 7) Removed manual duration from frontend - backend handles all timing. Needs comprehensive testing: pending session creation, therapist accept, billing calculation, edge cases."
+
 frontend:
   - task: "Twilio Video call integration"
     implemented: true
