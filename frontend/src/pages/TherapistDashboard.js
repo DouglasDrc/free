@@ -585,36 +585,8 @@ const TherapistDashboard = () => {
           </Card>
         </div>
 
-        {/* Session History */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Sessions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {sessions.length > 0 ? (
-              <div className="space-y-4" data-testid="session-history-list">
-                {sessions.slice(0, 10).map((session) => (
-                  <div key={session.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">Session ID: {session.id.slice(0, 8)}</p>
-                      <p className="text-sm text-gray-600">
-                        {new Date(session.start_time).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-purple-700">
-                        {session.duration_minutes} min • {session.duration_minutes * 30} coins
-                      </p>
-                      <p className="text-sm text-gray-600 capitalize">{session.status}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">No sessions yet</p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Call History */}
+        <CallHistory role="therapist" userId={user?.id} />
       </div>
     </div>
     </>
