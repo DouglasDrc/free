@@ -217,6 +217,21 @@ frontend:
           agent: "main"
           comment: "IMPROVED NOTIFICATION SYSTEM: Changed from tracking session count to tracking session IDs using Set. Now properly detects NEW sessions by ID comparison. Filters for 'pending' status only (incoming calls). Shows toast notification with client name for each new call. Plays audio notification. Position set to top-center. Frontend hot-reloaded. The logic now: 1) Polls every 5 seconds, 2) Compares current session IDs with previous, 3) Finds pending sessions not in previous set, 4) Shows notification for each new incoming call. Needs testing with real call flow."
 
+  - task: "End call functionality"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/src/pages/VideoCall.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "Unable to cut/end the phone call"
+        - working: "NA"
+          agent: "main"
+          comment: "FIXED: SessionEnd Pydantic model was requiring 'duration_minutes' as mandatory field, but frontend only sends 'session_id' since backend auto-calculates duration from therapist_joined_time. Made duration_minutes Optional[int] = None in model. Backend auto-reloaded. End call button should now work for both client and therapist. Duration will be calculated automatically from when therapist joined to when call ended. Needs testing to verify call can be ended and proper billing occurs."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
