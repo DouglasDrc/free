@@ -616,41 +616,47 @@ class MindConnectAPITester:
         return False
 
 def main():
-    print("🚀 Starting MindConnect API Tests...")
+    print("🚀 Starting MindConnect Coin Deduction Fix Tests...")
     tester = MindConnectAPITester()
     
-    # Test sequence - Focus on Twilio integration
+    # Test sequence - Focus on coin deduction fix
     tests = [
+        ("Admin Login", tester.test_admin_login_for_coin_tests),
         ("Client Registration and Login", tester.test_client_registration_and_login),
         ("Therapist Registration and Login", tester.test_therapist_registration_and_login),
-        ("Generate Twilio Token (Client)", tester.test_twilio_token_generation_client),
-        ("Generate Twilio Token (Therapist)", tester.test_twilio_token_generation_therapist),
-        ("Recharge Coins", tester.test_recharge_coins),
-        ("Start Session", tester.test_start_session),
-        ("Generate Twilio Token (Session Room)", tester.test_twilio_token_with_session_room),
-        ("End Session", tester.test_end_session),
+        ("Coin Deduction - Client Ends Session", tester.test_coin_deduction_client_ends_session),
+        ("Coin Deduction - Therapist Ends Session (CRITICAL)", tester.test_coin_deduction_therapist_ends_session),
     ]
     
     failed_tests = []
+    critical_failed = False
     
     for test_name, test_func in tests:
         try:
             if not test_func():
                 failed_tests.append(test_name)
+                if "CRITICAL" in test_name:
+                    critical_failed = True
         except Exception as e:
             print(f"❌ {test_name} failed with exception: {str(e)}")
             failed_tests.append(test_name)
+            if "CRITICAL" in test_name:
+                critical_failed = True
     
     # Print results
     print(f"\n📊 Test Results:")
     print(f"Tests passed: {tester.tests_passed}/{tester.tests_run}")
     print(f"Success rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
-    if failed_tests:
-        print(f"\n❌ Failed tests: {', '.join(failed_tests)}")
+    if critical_failed:
+        print(f"\n🚨 CRITICAL TEST FAILED: Coin deduction bug still exists!")
+        print(f"❌ Failed tests: {', '.join(failed_tests)}")
+        return 1
+    elif failed_tests:
+        print(f"\n⚠️  Some tests failed: {', '.join(failed_tests)}")
         return 1
     else:
-        print(f"\n✅ All tests passed!")
+        print(f"\n✅ All coin deduction tests passed!")
         return 0
 
 if __name__ == "__main__":
