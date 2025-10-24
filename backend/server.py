@@ -817,6 +817,23 @@ async def get_all_users(current_user: dict = Depends(get_current_user)):
     users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
     return users
 
+@api_router.get("/admin/sessions/all")
+async def get_all_sessions(current_user: dict = Depends(get_current_user)):
+    """Get all sessions with client and therapist names for admin"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    sessions = await db.sessions.find({}, {"_id": 0}).sort("start_time", -1).to_list(500)
+    
+    # Add client and therapist names
+    for session in sessions:
+        client = await db.users.find_one({"id": session["client_id"]}, {"_id": 0, "name": 1})
+        therapist = await db.users.find_one({"id": session["therapist_id"]}, {"_id": 0, "name": 1})
+        session["client_name"] = client.get("name") if client else "Unknown"
+        session["therapist_name"] = therapist.get("name") if therapist else "Unknown"
+    
+    return sessions
+
 @api_router.get("/admin/therapists")
 async def get_all_therapists(current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":
