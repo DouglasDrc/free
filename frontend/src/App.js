@@ -6,6 +6,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import TherapistLogin from './pages/TherapistLogin';
 import ClientDashboard from './pages/ClientDashboard';
 import TherapistDashboard from './pages/TherapistDashboard';
 import AdminDashboard from './pages/AdminDashboard';
