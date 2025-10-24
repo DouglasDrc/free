@@ -333,8 +333,8 @@ def main():
     
     # Test sequence - Focus on Twilio integration
     tests = [
-        ("Client Login", tester.test_client_login),
-        ("Therapist Login", tester.test_therapist_login),
+        ("Client Registration and Login", tester.test_client_registration_and_login),
+        ("Therapist Registration and Login", tester.test_therapist_registration_and_login),
         ("Generate Twilio Token (Client)", tester.test_twilio_token_generation_client),
         ("Generate Twilio Token (Therapist)", tester.test_twilio_token_generation_therapist),
         ("Start Session", tester.test_start_session),
