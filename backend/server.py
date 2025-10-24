@@ -603,6 +603,16 @@ async def get_session_history(current_user: dict = Depends(get_current_user)):
         query["therapist_id"] = current_user["id"]
     
     sessions = await db.sessions.find(query, {"_id": 0}).sort("start_time", -1).to_list(100)
+    
+    # Add names to sessions
+    for session in sessions:
+        if current_user["role"] == "client":
+            therapist = await db.users.find_one({"id": session["therapist_id"]}, {"_id": 0, "name": 1})
+            session["therapist_name"] = therapist.get("name") if therapist else "Unknown"
+        elif current_user["role"] == "therapist":
+            client = await db.users.find_one({"id": session["client_id"]}, {"_id": 0, "name": 1})
+            session["client_name"] = client.get("name") if client else "Unknown"
+    
     return sessions
 
 @api_router.get("/sessions/active")
