@@ -320,6 +320,15 @@ const TherapistDashboard = () => {
         balance={balance}
         onLogout={handleLogout}
         showRecharge={false}
+        onEditProfile={() => setShowUserProfileEdit(true)}
+      />
+      
+      {/* User Profile Edit Dialog */}
+      <UserProfileEdit
+        user={user}
+        open={showUserProfileEdit}
+        onOpenChange={setShowUserProfileEdit}
+        onProfileUpdated={handleUserProfileUpdated}
       />
       
       {/* Therapist Controls - Mobile Friendly */}
