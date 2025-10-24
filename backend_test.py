@@ -346,6 +346,7 @@ def main():
         ("Therapist Registration and Login", tester.test_therapist_registration_and_login),
         ("Generate Twilio Token (Client)", tester.test_twilio_token_generation_client),
         ("Generate Twilio Token (Therapist)", tester.test_twilio_token_generation_therapist),
+        ("Recharge Coins", tester.test_recharge_coins),
         ("Start Session", tester.test_start_session),
         ("Generate Twilio Token (Session Room)", tester.test_twilio_token_with_session_room),
         ("End Session", tester.test_end_session),
