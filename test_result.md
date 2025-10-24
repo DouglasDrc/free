@@ -168,6 +168,21 @@ backend:
           agent: "testing"
           comment: "COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: ✅ Test Scenario 1 (Normal Flow): Sessions created with status='pending', therapist accepts via POST /api/sessions/accept, status changes to 'active', billing calculated from therapist_joined_time, minimum 1-minute billing enforced. ✅ Test Scenario 2 (Therapist Never Joins): Sessions end with status='cancelled', coins_spent=0, no billing applied. ✅ Test Scenario 3 (Duration Calculation): Accurate duration calculation from therapist join time to end time, proper coin deduction based on therapist rates. ✅ Test Scenario 4 (Edge Cases): Cannot accept already active sessions (400 error), clients cannot accept sessions (403 error), sessions can be ended before therapist joins (cancelled status). ✅ Transaction records created correctly with proper types (deduction for client, earning for therapist). All 8 test scenarios passed with 94.4% success rate. NEW BILLING FEATURE IS WORKING PERFECTLY."
 
+  - task: "Active sessions endpoint shows pending calls"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "Calling now not working - therapists can't see incoming calls"
+        - working: "NA"
+          agent: "main"
+          comment: "FIXED: GET /api/sessions/active was filtering for status='active' only, but sessions now start as 'pending'. Updated endpoint to query for status in ['pending', 'active'] so therapists can see incoming calls (pending) and ongoing calls (active). Also fixed decline endpoint to accept both 'pending' and 'active' sessions so therapists can decline incoming calls. Backend auto-reloaded. Needs testing to verify therapists see incoming calls in dashboard."
+
 frontend:
   - task: "Twilio Video call integration"
     implemented: true
