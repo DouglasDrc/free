@@ -135,7 +135,8 @@ const TherapistDashboard = () => {
       );
       
       // Show full-screen modal for first incoming call
-      if (incomingSessions.length > 0 && previousSessionIds.size > 0 && !showIncomingCall) {
+      // Removed previousSessionIds.size > 0 check to show on first load too
+      if (incomingSessions.length > 0 && !showIncomingCall) {
         setShowIncomingCall(incomingSessions[0]);
         
         // Also show toast notification
@@ -144,6 +145,8 @@ const TherapistDashboard = () => {
           icon: '📞',
           position: 'top-center'
         });
+        
+        console.log('🔔 Showing incoming call modal for:', incomingSessions[0]);
       }
       
       // If no pending sessions, hide modal
@@ -154,8 +157,13 @@ const TherapistDashboard = () => {
       
       setPreviousSessionIds(newSessionIds);
       setActiveSessions(newSessions);
+      
+      // Debug log
+      if (newSessions.length > 0) {
+        console.log('📊 Active sessions:', newSessions.length, 'Pending:', newSessions.filter(s => s.status === 'pending').length);
+      }
     } catch (error) {
-      console.error('Failed to fetch active sessions');
+      console.error('Failed to fetch active sessions:', error);
     }
   };
 
