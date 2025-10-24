@@ -91,6 +91,11 @@ const ClientDashboard = () => {
     navigate('/login');
   };
 
+  const handleProfileUpdated = (updatedUser) => {
+    setUser(updatedUser);
+    fetchUserData(); // Refresh user data
+  };
+
   const handleStartSession = async (therapistId, sessionType) => {
     if (balance < 100) {
       toast.error('Insufficient coins! Please recharge.');
