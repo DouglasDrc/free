@@ -339,23 +339,35 @@ const VideoCall = () => {
   };
 
   const handleEndCall = async () => {
-    if (hasEndedRef.current) return;
+    console.log('🔴 End call button clicked! hasEndedRef:', hasEndedRef.current);
+    
+    if (hasEndedRef.current) {
+      console.log('⚠️ Call already ended, returning early');
+      return;
+    }
+    
     hasEndedRef.current = true;
+    console.log('📞 Attempting to end call for session:', sessionId);
     
     try {
       const token = localStorage.getItem('token');
+      console.log('🔑 Token exists:', !!token);
       
       // Backend will calculate duration based on therapist_joined_time
-      await axios.post(`${API}/sessions/end`, {
+      console.log('📡 Calling API: POST /api/sessions/end');
+      const response = await axios.post(`${API}/sessions/end`, {
         session_id: sessionId
       }, { headers: { Authorization: `Bearer ${token}` } });
       
+      console.log('✅ API response:', response.data);
       toast.success('Call ended');
       cleanupTwilio();
       
       const userRes = await axios.get(`${API}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      console.log('👤 User role:', userRes.data.role);
       
       if (userRes.data.role === 'therapist') {
         navigate('/therapist');
@@ -365,12 +377,14 @@ const VideoCall = () => {
     } catch (error) {
       // Reset flag on error so user can try again
       hasEndedRef.current = false;
-      toast.error('Failed to end call: ' + (error.response?.data?.detail || error.message));
-      console.error('End call error:', error);
+      const errorMsg = error.response?.data?.detail || error.message;
+      console.error('❌ End call error:', errorMsg, error);
+      toast.error('Failed to end call: ' + errorMsg);
       
       // Still try to cleanup and navigate
       cleanupTwilio();
       setTimeout(() => {
+        console.log('⏰ Force navigating to client dashboard');
         navigate('/client');
       }, 2000);
     }
