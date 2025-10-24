@@ -24,6 +24,7 @@ const TherapistDashboard = () => {
   const [balance, setBalance] = useState(0);
   const [status, setStatus] = useState('offline');
   const [previousSessionIds, setPreviousSessionIds] = useState(new Set());
+  const [showIncomingCall, setShowIncomingCall] = useState(null); // For full-screen modal
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editForm, setEditForm] = useState({
