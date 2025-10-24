@@ -124,6 +124,20 @@ const MobileNav = ({ user, balance, onLogout, showRecharge, onRechargeClick, onE
                 </Button>
               )}
               
+              {onViewTransactions && (
+                <Button 
+                  onClick={() => {
+                    onViewTransactions();
+                    setIsOpen(false);
+                  }} 
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  Transaction History
+                </Button>
+              )}
+              
               {showRecharge && onRechargeClick && (
                 <Button 
                   onClick={() => {
