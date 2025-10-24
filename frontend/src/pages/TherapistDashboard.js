@@ -251,6 +251,11 @@ const TherapistDashboard = () => {
     navigate('/login');
   };
 
+  const handleUserProfileUpdated = (updatedUser) => {
+    setUser(updatedUser);
+    fetchUserData(); // Refresh user data
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
