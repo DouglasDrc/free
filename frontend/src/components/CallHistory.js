@@ -139,18 +139,23 @@ const CallHistory = ({ role, userId }) => {
 
                   {/* Right side - Coins info */}
                   <div className="flex flex-col md:items-end gap-2">
-                    {/* For admin - show both */}
+                    {/* For admin - show all three */}
                     {role === 'admin' && (
                       <>
-                        <div className="flex items-center gap-2 text-red-600">
+                        <div className="flex items-center gap-2 text-red-600 text-sm">
                           <CoinsIcon className="w-4 h-4" />
                           <span className="font-bold">-{session.coins_spent}</span>
                           <span className="text-xs">(Client)</span>
                         </div>
-                        <div className="flex items-center gap-2 text-green-600">
+                        <div className="flex items-center gap-2 text-green-600 text-sm">
                           <CoinsIcon className="w-4 h-4" />
-                          <span className="font-bold">+{session.duration_minutes * 30}</span>
+                          <span className="font-bold">+{session.therapist_earnings || (session.duration_minutes * 30)}</span>
                           <span className="text-xs">(Therapist)</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-blue-600 text-sm">
+                          <CoinsIcon className="w-4 h-4" />
+                          <span className="font-bold">+{session.admin_commission || (session.duration_minutes * 70)}</span>
+                          <span className="text-xs">(Commission)</span>
                         </div>
                       </>
                     )}
@@ -162,6 +167,7 @@ const CallHistory = ({ role, userId }) => {
                         <div className="text-right">
                           <p className="font-bold text-lg">-{session.coins_spent}</p>
                           <p className="text-xs text-gray-500">coins deducted</p>
+                          <p className="text-xs text-gray-400">@100/min</p>
                         </div>
                       </div>
                     )}
@@ -171,8 +177,9 @@ const CallHistory = ({ role, userId }) => {
                       <div className="flex items-center gap-2 text-green-600">
                         <CoinsIcon className="w-5 h-5" />
                         <div className="text-right">
-                          <p className="font-bold text-lg">+{session.duration_minutes * 30}</p>
+                          <p className="font-bold text-lg">+{session.therapist_earnings || (session.duration_minutes * 30)}</p>
                           <p className="text-xs text-gray-500">coins earned</p>
+                          <p className="text-xs text-gray-400">@30/min</p>
                         </div>
                       </div>
                     )}
