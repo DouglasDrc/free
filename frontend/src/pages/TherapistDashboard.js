@@ -22,7 +22,7 @@ const TherapistDashboard = () => {
   const [activeSessions, setActiveSessions] = useState([]);
   const [balance, setBalance] = useState(0);
   const [status, setStatus] = useState('offline');
-  const [previousSessionCount, setPreviousSessionCount] = useState(0);
+  const [previousSessionIds, setPreviousSessionIds] = useState(new Set());
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editForm, setEditForm] = useState({
