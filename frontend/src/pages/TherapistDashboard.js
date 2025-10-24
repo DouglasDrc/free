@@ -53,8 +53,8 @@ const TherapistDashboard = () => {
     fetchSessions();
     fetchActiveSessions();
     
-    // Poll for active sessions every 5 seconds
-    const interval = setInterval(fetchActiveSessions, 5000);
+    // Aggressive polling for active sessions every 2 seconds
+    const interval = setInterval(fetchActiveSessions, 2000);
     return () => clearInterval(interval);
   }, []);
 
