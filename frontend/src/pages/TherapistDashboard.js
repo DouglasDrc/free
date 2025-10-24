@@ -15,6 +15,7 @@ import IncomingCallModal from '../components/IncomingCallModal';
 import MobileNav from '../components/MobileNav';
 import UserProfileEdit from '../components/UserProfileEdit';
 import TransactionHistory from '../components/TransactionHistory';
+import CallHistory from '../components/CallHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
