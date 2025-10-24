@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
-import { Video, LogOut, Menu, X, Wallet, HelpCircle, MessageCircle, User as UserIcon } from 'lucide-react';
+import { Video, LogOut, Menu, X, Wallet, HelpCircle, MessageCircle, User as UserIcon, History } from 'lucide-react';
 
-const MobileNav = ({ user, balance, onLogout, showRecharge, onRechargeClick, onEditProfile }) => {
+const MobileNav = ({ user, balance, onLogout, showRecharge, onRechargeClick, onEditProfile, onViewTransactions }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
