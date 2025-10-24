@@ -53,6 +53,11 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+
 class User(UserBase):
     model_config = ConfigDict(extra="ignore")
     id: str
