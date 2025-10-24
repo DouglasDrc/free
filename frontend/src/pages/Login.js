@@ -109,6 +109,19 @@ const Login = () => {
             </Button>
           </form>
 
+          <div className="mt-6 text-center space-y-2">
+            <p className="text-sm text-gray-600">
+              Are you a therapist?{' '}
+              <Button
+                variant="link"
+                onClick={() => navigate('/therapist-login')}
+                className="text-purple-600 font-semibold p-0 h-auto"
+              >
+                Therapist Login
+              </Button>
+            </p>
+          </div>
+
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
