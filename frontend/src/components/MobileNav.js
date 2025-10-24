@@ -63,6 +63,13 @@ const MobileNav = ({ user, balance, onLogout, showRecharge, onRechargeClick, onE
               </Button>
             )}
             
+            {onViewTransactions && (
+              <Button onClick={onViewTransactions} variant="outline" size="sm">
+                <History className="w-4 h-4 mr-2" />
+                Transactions
+              </Button>
+            )}
+            
             <Button onClick={onLogout} variant="destructive" size="sm">
               <LogOut className="w-4 h-4 mr-2" />
               Logout
