@@ -69,6 +69,12 @@ const VideoCall = () => {
     try {
       const token = localStorage.getItem('token');
       
+      // Get user info to check role
+      const userRes = await axios.get(`${API}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const currentUser = userRes.data;
+      
       // Get session info
       const sessionsRes = await axios.get(`${API}/sessions/history`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -78,6 +84,20 @@ const VideoCall = () => {
       if (!foundSession) {
         toast.error('Session not found');
         return;
+      }
+
+      // If therapist, mark session as accepted (billing starts now)
+      if (currentUser.role === 'therapist') {
+        try {
+          await axios.post(`${API}/sessions/accept`, {
+            session_id: sessionId
+          }, { headers: { Authorization: `Bearer ${token}` } });
+          console.log('Session accepted - billing started');
+          toast.success('Call accepted - billing started');
+        } catch (error) {
+          console.error('Failed to accept session:', error);
+          // Continue with video call even if accept fails
+        }
       }
 
       // Get Twilio token
