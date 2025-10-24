@@ -87,8 +87,23 @@ class MindConnectAPITester:
             return True
         return False
 
-    def test_client_login(self):
-        """Test client login with test credentials"""
+    def test_client_registration_and_login(self):
+        """Test client registration and login with test credentials"""
+        # Try to register first (might fail if user exists)
+        self.run_test(
+            "Client Registration (if needed)",
+            "POST",
+            "auth/register",
+            200,
+            data={
+                "email": "client@test.com",
+                "name": "Test Client",
+                "password": "client123",
+                "role": "client"
+            }
+        )
+        
+        # Now try to login
         success, response = self.run_test(
             "Client Login",
             "POST",
