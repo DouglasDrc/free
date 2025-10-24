@@ -189,6 +189,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Billing starts only when therapist joins"
     - "Twilio Video call integration"
   stuck_tasks: []
   test_all: false
