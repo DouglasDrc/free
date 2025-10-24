@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { Video, LogOut, Wallet, TrendingUp, Users, Clock, Phone, X } from 'lucide-react';
 import IncomingCallModal from '../components/IncomingCallModal';
 import MobileNav from '../components/MobileNav';
+import UserProfileEdit from '../components/UserProfileEdit';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
