@@ -22,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/therapist-login" element={<TherapistLogin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/support" element={<Support />} />
