@@ -343,6 +343,11 @@ const ClientDashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Call History Section */}
+        <div className="mt-8">
+          <CallHistory role="client" userId={user?.id} />
+        </div>
       </div>
     </div>
   );
