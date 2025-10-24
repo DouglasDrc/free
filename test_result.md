@@ -219,11 +219,11 @@ frontend:
 
   - task: "End call functionality"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py, /app/frontend/src/pages/VideoCall.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "user"
@@ -231,6 +231,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "FIXED: SessionEnd Pydantic model was requiring 'duration_minutes' as mandatory field, but frontend only sends 'session_id' since backend auto-calculates duration from therapist_joined_time. Made duration_minutes Optional[int] = None in model. Backend auto-reloaded. End call button should now work for both client and therapist. Duration will be calculated automatically from when therapist joined to when call ended. Needs testing to verify call can be ended and proper billing occurs."
+        - working: true
+          agent: "testing"
+          comment: "COMPREHENSIVE END CALL TESTING COMPLETED SUCCESSFULLY: ✅ ALL 4 TEST SCENARIOS PASSED (100% success rate). ✅ Scenario 1 (Normal Flow): Client creates session → Therapist accepts → Wait 3 seconds → Client ends call with only session_id (no duration_minutes field) → Session status='completed', duration auto-calculated (1 min), proper billing (150 coins deducted from client, 30 coins earned by therapist). ✅ Scenario 2 (Therapist Never Joins): Client creates session → End without therapist accepting → Session status='cancelled', coins_spent=0, no billing applied. ✅ Scenario 3 (Both Can End): Both client and therapist can successfully end calls, proper billing in both cases. ✅ Scenario 4 (Duration Calculation): Duration auto-calculated from therapist_joined_time to end_time, minimum 1-minute billing enforced, accurate coin calculations. ✅ CRITICAL FIX VERIFIED: POST /api/sessions/end now accepts only {session_id} without duration_minutes field, backend auto-calculates everything. The end call functionality is working perfectly."
 
 metadata:
   created_by: "main_agent"
