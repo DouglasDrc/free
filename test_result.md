@@ -202,6 +202,21 @@ frontend:
           agent: "main"
           comment: "Backend Twilio client fixed. Frontend uses twilio-video SDK to connect to rooms. Needs end-to-end testing."
 
+  - task: "Therapist notification for incoming calls"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/TherapistDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "Therapist not get notified when client starts call"
+        - working: "NA"
+          agent: "main"
+          comment: "IMPROVED NOTIFICATION SYSTEM: Changed from tracking session count to tracking session IDs using Set. Now properly detects NEW sessions by ID comparison. Filters for 'pending' status only (incoming calls). Shows toast notification with client name for each new call. Plays audio notification. Position set to top-center. Frontend hot-reloaded. The logic now: 1) Polls every 5 seconds, 2) Compares current session IDs with previous, 3) Finds pending sessions not in previous set, 4) Shows notification for each new incoming call. Needs testing with real call flow."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
