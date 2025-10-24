@@ -54,13 +54,18 @@ const TherapistDashboard = () => {
       navigate('/login');
       return;
     }
+    
+    // Initial data fetch
     fetchUserData();
     fetchProfile();
     fetchSessions();
+    
+    // Fetch active sessions immediately and show any pending calls
     fetchActiveSessions();
     
-    // Aggressive polling for active sessions every 2 seconds
+    // Then poll every 2 seconds for updates
     const interval = setInterval(fetchActiveSessions, 2000);
+    
     return () => clearInterval(interval);
   }, []);
 
