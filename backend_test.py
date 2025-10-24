@@ -211,7 +211,16 @@ class MindConnectAPITester:
 
     def test_start_session(self):
         """Test starting a session"""
-        if not self.client_token or not self.created_therapist_id:
+        if not self.client_token or not self.therapist_token:
+            return False
+        
+        # Get therapist user ID from token
+        import jwt
+        try:
+            therapist_payload = jwt.decode(self.therapist_token, options={"verify_signature": False})
+            therapist_id = therapist_payload.get("sub")
+        except:
+            print("   Failed to decode therapist token")
             return False
         
         success, response = self.run_test(
@@ -220,7 +229,7 @@ class MindConnectAPITester:
             "sessions/start",
             200,
             data={
-                "therapist_id": self.created_therapist_id,
+                "therapist_id": therapist_id,
                 "session_type": "call"
             },
             headers={'Authorization': f'Bearer {self.client_token}'}
