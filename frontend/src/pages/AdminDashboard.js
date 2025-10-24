@@ -710,9 +710,10 @@ const AdminDashboard = () => {
 
         {/* Tabs for Users and Therapists */}
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="users">All Users</TabsTrigger>
             <TabsTrigger value="therapists">Therapists</TabsTrigger>
+            <TabsTrigger value="callhistory">Call History</TabsTrigger>
           </TabsList>
           
           <TabsContent value="users">
