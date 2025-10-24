@@ -29,11 +29,19 @@ const Login = () => {
       });
       
       const role = profileRes.data.role;
+      
+      // Redirect therapists to therapist login page
+      if (role === 'therapist') {
+        toast.error('Please use the Therapist Login page');
+        localStorage.removeItem('token');
+        navigate('/therapist-login');
+        return;
+      }
+      
       toast.success('Login successful!');
       
       // Redirect based on role
       if (role === 'client') navigate('/client');
-      else if (role === 'therapist') navigate('/therapist');
       else if (role === 'admin') navigate('/admin');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Login failed');
