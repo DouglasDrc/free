@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Video, LogOut, Wallet, Search, Star, Clock, Phone, MessageCircle, CoinsIcon } from 'lucide-react';
 import MobileNav from '../components/MobileNav';
 import UserProfileEdit from '../components/UserProfileEdit';
+import TransactionHistory from '../components/TransactionHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
