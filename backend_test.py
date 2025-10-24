@@ -1900,20 +1900,474 @@ class MindConnectAPITester:
 
         return True
 
+    # ============= CRITICAL BALANCE INVESTIGATION TESTS =============
+    
+    def test_critical_balance_investigation(self):
+        """CRITICAL: Investigate -160 balance issue after 3000 coin recharge"""
+        print("\n🚨 CRITICAL BALANCE INVESTIGATION - User reports -160 balance after recharging 3000 coins")
+        
+        # Create fresh user for clean test
+        timestamp = datetime.now().strftime('%H%M%S')
+        fresh_email = f"balancetest{timestamp}@test.com"
+        
+        # Step 1: Register fresh user
+        success, response = self.run_test(
+            "Register Fresh User for Balance Test",
+            "POST",
+            "auth/register",
+            200,
+            data={
+                "email": fresh_email,
+                "name": f"Balance Test User {timestamp}",
+                "password": "testpass123",
+                "role": "client"
+            }
+        )
+        
+        if not success or 'access_token' not in response:
+            print("❌ Failed to create fresh user")
+            return False
+        
+        fresh_token = response['access_token']
+        fresh_user_id = self.get_user_id_from_token(fresh_token)
+        
+        # Step 2: Check initial balance (should be 0)
+        initial_balance = self.get_user_balance(fresh_token)
+        print(f"   Initial balance: {initial_balance} coins")
+        
+        if initial_balance != 0:
+            print(f"   ❌ Expected initial balance 0, got {initial_balance}")
+            return False
+        
+        # Step 3: Recharge 600 coins (starter package)
+        success, response = self.run_test(
+            "Recharge Starter Package (600 coins)",
+            "POST",
+            "coins/recharge/package?package_id=starter",
+            200,
+            headers={'Authorization': f'Bearer {fresh_token}'}
+        )
+        
+        if not success:
+            print("   ❌ Failed to recharge starter package")
+            return False
+        
+        # Step 4: Verify balance = 600
+        balance_after_recharge = self.get_user_balance(fresh_token)
+        print(f"   Balance after starter recharge: {balance_after_recharge} coins")
+        
+        if balance_after_recharge != 600:
+            print(f"   ❌ Expected balance 600, got {balance_after_recharge}")
+            return False
+        
+        # Step 5: Recharge Gold package (3300 coins) to simulate user's 3000 coin recharge
+        success, response = self.run_test(
+            "Recharge Gold Package (3300 coins)",
+            "POST",
+            "coins/recharge/package?package_id=gold",
+            200,
+            headers={'Authorization': f'Bearer {fresh_token}'}
+        )
+        
+        if not success:
+            print("   ❌ Failed to recharge gold package")
+            return False
+        
+        # Step 6: Verify cumulative balance = 600 + 3300 = 3900
+        balance_after_gold = self.get_user_balance(fresh_token)
+        print(f"   Balance after gold recharge: {balance_after_gold} coins")
+        expected_balance = 600 + 3300
+        
+        if balance_after_gold != expected_balance:
+            print(f"   ❌ Expected balance {expected_balance}, got {balance_after_gold}")
+            return False
+        
+        # Step 7: Get therapist for session test
+        if not self.therapist_token:
+            print("   ❌ No therapist token available for session test")
+            return False
+        
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        therapist_rate = self.get_therapist_call_rate(self.therapist_token)
+        
+        # Step 8: Start and complete a short session (1 min)
+        success, response = self.run_test(
+            "Start Session for Balance Test",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {fresh_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   ❌ Failed to start session")
+            return False
+        
+        session_id = response['session_id']
+        
+        # Step 9: Therapist accepts session
+        success, accept_response = self.run_test(
+            "Therapist Accepts Session (Balance Test)",
+            "POST",
+            "sessions/accept",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+        
+        if not success:
+            print("   ❌ Failed to accept session")
+            return False
+        
+        # Step 10: Wait 1 minute and end session
+        print("   Waiting 3 seconds for session duration...")
+        time.sleep(3)
+        
+        success, end_response = self.run_test(
+            "End Session (Balance Test)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {fresh_token}'}
+        )
+        
+        if not success:
+            print("   ❌ Failed to end session")
+            return False
+        
+        # Step 11: Calculate expected balance and check actual
+        expected_deduction = 1 * therapist_rate  # Minimum 1 minute billing
+        expected_remaining = expected_balance - expected_deduction
+        
+        final_balance = self.get_user_balance(fresh_token)
+        print(f"   Expected deduction: {expected_deduction} coins (1 min × {therapist_rate}/min)")
+        print(f"   Expected remaining: {expected_remaining} coins")
+        print(f"   Actual final balance: {final_balance} coins")
+        
+        # Step 12: Check transaction history for unexpected entries
+        success, transactions = self.run_test(
+            "Get Transaction History (Balance Test)",
+            "GET",
+            "transactions/history",
+            200,
+            headers={'Authorization': f'Bearer {fresh_token}'}
+        )
+        
+        if success:
+            print(f"   Transaction count: {len(transactions)}")
+            for i, tx in enumerate(transactions[:5]):  # Show last 5 transactions
+                print(f"   Transaction {i+1}: {tx['type']} - {tx['amount']} coins - {tx['description']}")
+        
+        # Step 13: Verify balance matches expected
+        if final_balance == expected_remaining:
+            print("   ✅ Balance calculation is CORRECT - no duplicate deductions found")
+            return True
+        elif final_balance < 0:
+            print(f"   🚨 CRITICAL BUG FOUND: Balance went negative ({final_balance}) - this matches user report!")
+            return False
+        else:
+            print(f"   ❌ Balance mismatch: expected {expected_remaining}, got {final_balance}")
+            return False
+    
+    def test_multiple_session_balance_tracking(self):
+        """Test multiple sessions to check for cumulative balance issues"""
+        print("\n🔍 Testing Multiple Sessions for Balance Tracking...")
+        
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+        
+        # Get initial setup
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        therapist_rate = self.get_therapist_call_rate(self.therapist_token)
+        
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 5000):
+            print("   Failed to add coins to client")
+            return False
+        
+        initial_balance = self.get_user_balance(self.client_token)
+        print(f"   Starting balance: {initial_balance} coins")
+        
+        total_expected_deduction = 0
+        
+        # Run 3 short sessions
+        for session_num in range(1, 4):
+            print(f"\n   Session {session_num}:")
+            
+            # Start session
+            success, response = self.run_test(
+                f"Start Session {session_num}",
+                "POST",
+                "sessions/start",
+                200,
+                data={
+                    "therapist_id": therapist_id,
+                    "session_type": "call"
+                },
+                headers={'Authorization': f'Bearer {self.client_token}'}
+            )
+            
+            if not success or 'session_id' not in response:
+                print(f"   ❌ Failed to start session {session_num}")
+                return False
+            
+            session_id = response['session_id']
+            
+            # Therapist accepts
+            success, accept_response = self.run_test(
+                f"Therapist Accepts Session {session_num}",
+                "POST",
+                "sessions/accept",
+                200,
+                data={"session_id": session_id},
+                headers={'Authorization': f'Bearer {self.therapist_token}'}
+            )
+            
+            if not success:
+                print(f"   ❌ Failed to accept session {session_num}")
+                return False
+            
+            # Wait and end
+            time.sleep(2)
+            
+            success, end_response = self.run_test(
+                f"End Session {session_num}",
+                "POST",
+                "sessions/end",
+                200,
+                data={"session_id": session_id},
+                headers={'Authorization': f'Bearer {self.client_token}'}
+            )
+            
+            if not success:
+                print(f"   ❌ Failed to end session {session_num}")
+                return False
+            
+            # Check balance after each session
+            current_balance = self.get_user_balance(self.client_token)
+            session_deduction = 1 * therapist_rate  # Minimum 1 minute
+            total_expected_deduction += session_deduction
+            expected_balance = initial_balance - total_expected_deduction
+            
+            print(f"   After session {session_num}: Balance = {current_balance}, Expected = {expected_balance}")
+            
+            if current_balance != expected_balance:
+                print(f"   ❌ Balance mismatch after session {session_num}")
+                return False
+        
+        print("   ✅ Multiple sessions processed correctly - no cumulative balance errors")
+        return True
+    
+    def test_back_button_duplicate_deduction(self):
+        """Test for duplicate deductions when using back button"""
+        print("\n🔍 Testing Back Button Duplicate Deduction Issue...")
+        
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+        
+        # Get setup
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+        therapist_rate = self.get_therapist_call_rate(self.therapist_token)
+        
+        # Ensure client has enough coins
+        if not self.add_coins_to_client(client_id, 2000):
+            print("   Failed to add coins to client")
+            return False
+        
+        initial_balance = self.get_user_balance(self.client_token)
+        
+        # Start session
+        success, response = self.run_test(
+            "Start Session (Back Button Test)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   ❌ Failed to start session")
+            return False
+        
+        session_id = response['session_id']
+        
+        # Therapist accepts
+        success, accept_response = self.run_test(
+            "Therapist Accepts Session (Back Button Test)",
+            "POST",
+            "sessions/accept",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+        
+        if not success:
+            print("   ❌ Failed to accept session")
+            return False
+        
+        time.sleep(2)
+        
+        # End session first time
+        success, end_response1 = self.run_test(
+            "End Session (First Call)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   ❌ Failed to end session first time")
+            return False
+        
+        balance_after_first_end = self.get_user_balance(self.client_token)
+        expected_deduction = 1 * therapist_rate
+        expected_balance = initial_balance - expected_deduction
+        
+        print(f"   After first end: Balance = {balance_after_first_end}, Expected = {expected_balance}")
+        
+        # Try to end session again (simulating back button issue)
+        success, end_response2 = self.run_test(
+            "End Session (Second Call - Should Not Deduct Again)",
+            "POST",
+            "sessions/end",
+            200,
+            data={"session_id": session_id},
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success:
+            print("   ❌ Failed on second end call")
+            return False
+        
+        balance_after_second_end = self.get_user_balance(self.client_token)
+        
+        print(f"   After second end: Balance = {balance_after_second_end}")
+        
+        # Balance should be the same (no duplicate deduction)
+        if balance_after_second_end == balance_after_first_end:
+            print("   ✅ No duplicate deduction on second end call")
+            return True
+        else:
+            print("   ❌ DUPLICATE DEDUCTION DETECTED!")
+            return False
+    
+    def test_comprehensive_coin_package_recharge(self):
+        """Test all coin packages for correct balance updates"""
+        print("\n🔍 Testing All Coin Package Recharges...")
+        
+        # Create fresh user for each package test
+        packages = [
+            {"id": "starter", "coins": 600, "name": "Starter"},
+            {"id": "silver", "coins": 1500, "name": "Silver"},
+            {"id": "gold", "coins": 3300, "name": "Gold"}
+        ]
+        
+        for package in packages:
+            timestamp = datetime.now().strftime('%H%M%S%f')
+            fresh_email = f"pkg{package['id']}{timestamp}@test.com"
+            
+            # Register fresh user
+            success, response = self.run_test(
+                f"Register User for {package['name']} Package Test",
+                "POST",
+                "auth/register",
+                200,
+                data={
+                    "email": fresh_email,
+                    "name": f"{package['name']} Test User",
+                    "password": "testpass123",
+                    "role": "client"
+                }
+            )
+            
+            if not success or 'access_token' not in response:
+                print(f"   ❌ Failed to create user for {package['name']} test")
+                continue
+            
+            fresh_token = response['access_token']
+            
+            # Check initial balance
+            initial_balance = self.get_user_balance(fresh_token)
+            if initial_balance != 0:
+                print(f"   ❌ {package['name']}: Initial balance not 0")
+                continue
+            
+            # Recharge package
+            success, response = self.run_test(
+                f"Recharge {package['name']} Package",
+                "POST",
+                f"coins/recharge/package?package_id={package['id']}",
+                200,
+                headers={'Authorization': f'Bearer {fresh_token}'}
+            )
+            
+            if not success:
+                print(f"   ❌ Failed to recharge {package['name']} package")
+                continue
+            
+            # Verify balance
+            final_balance = self.get_user_balance(fresh_token)
+            if final_balance == package['coins']:
+                print(f"   ✅ {package['name']} package: {package['coins']} coins added correctly")
+            else:
+                print(f"   ❌ {package['name']} package: Expected {package['coins']}, got {final_balance}")
+                return False
+        
+        return True
+
 def main():
-    print("🚀 Starting MindConnect PENDING SESSIONS VISIBILITY Tests...")
-    print("Testing: Therapists can now see incoming calls (pending sessions)")
+    print("🚀 Starting MindConnect COMPREHENSIVE API Tests...")
+    print("🚨 CRITICAL FOCUS: Investigating -160 balance issue after 3000 coin recharge")
     tester = MindConnectAPITester()
     
-    # Test sequence - Focus on PENDING SESSIONS VISIBILITY
+    # Test sequence - Focus on CRITICAL BALANCE INVESTIGATION
     tests = [
         ("Admin Login", tester.test_admin_login_for_coin_tests),
         ("Client Registration and Login", tester.test_client_registration_and_login),
         ("Therapist Registration and Login", tester.test_therapist_registration_and_login),
-        ("PENDING SESSIONS - Scenario 1: Client Starts Call, Therapist Sees It", tester.test_pending_sessions_visibility_scenario_1),
-        ("PENDING SESSIONS - Scenario 2: Therapist Accepts Call", tester.test_pending_sessions_visibility_scenario_2),
-        ("PENDING SESSIONS - Scenario 3: Therapist Declines Pending Call", tester.test_pending_sessions_visibility_scenario_3),
-        ("PENDING SESSIONS - Scenario 4: Multiple Pending Sessions", tester.test_pending_sessions_visibility_scenario_4),
+        
+        # CRITICAL BALANCE INVESTIGATION TESTS
+        ("🚨 CRITICAL: Balance Investigation", tester.test_critical_balance_investigation),
+        ("Multiple Session Balance Tracking", tester.test_multiple_session_balance_tracking),
+        ("Back Button Duplicate Deduction Test", tester.test_back_button_duplicate_deduction),
+        ("Comprehensive Coin Package Recharge", tester.test_comprehensive_coin_package_recharge),
+        
+        # Core functionality tests
+        ("Get Coin Packages", tester.test_get_coin_packages),
+        ("Get User Balance", tester.test_get_user_balance),
+        ("List Therapists", tester.test_list_therapists),
+        ("Admin Analytics", tester.test_admin_analytics),
+        
+        # Session flow tests
+        ("Start Session", tester.test_start_session),
+        ("Coin Deduction - Client Ends", tester.test_coin_deduction_client_ends_session),
+        ("Coin Deduction - Therapist Ends", tester.test_coin_deduction_therapist_ends_session),
+        ("Transaction Records", tester.test_transaction_records),
+        
+        # Billing feature tests
+        ("Billing - Normal Flow", tester.test_billing_normal_flow_therapist_joins),
+        ("Billing - Therapist Never Joins", tester.test_billing_therapist_never_joins),
+        ("Billing - Duration Calculation", tester.test_billing_duration_calculation),
+        ("Billing - Edge Cases", tester.test_billing_edge_cases),
+        
+        # Twilio tests
+        ("Twilio Token - Client", tester.test_twilio_token_generation_client),
+        ("Twilio Token - Therapist", tester.test_twilio_token_generation_therapist),
     ]
     
     failed_tests = []
@@ -1923,12 +2377,12 @@ def main():
         try:
             if not test_func():
                 failed_tests.append(test_name)
-                if "PENDING SESSIONS" in test_name:
+                if "🚨 CRITICAL" in test_name or "Balance" in test_name:
                     critical_failed = True
         except Exception as e:
             print(f"❌ {test_name} failed with exception: {str(e)}")
             failed_tests.append(test_name)
-            if "PENDING SESSIONS" in test_name:
+            if "🚨 CRITICAL" in test_name or "Balance" in test_name:
                 critical_failed = True
     
     # Print results
@@ -1937,14 +2391,14 @@ def main():
     print(f"Success rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
     if critical_failed:
-        print(f"\n🚨 PENDING SESSIONS VISIBILITY TESTS FAILED!")
+        print(f"\n🚨 CRITICAL BALANCE TESTS FAILED!")
         print(f"❌ Failed tests: {', '.join(failed_tests)}")
         return 1
     elif failed_tests:
         print(f"\n⚠️  Some tests failed: {', '.join(failed_tests)}")
         return 1
     else:
-        print(f"\n✅ All PENDING SESSIONS VISIBILITY tests passed!")
+        print(f"\n✅ All tests passed!")
         return 0
 
 if __name__ == "__main__":
