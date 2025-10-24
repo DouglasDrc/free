@@ -363,8 +363,16 @@ const VideoCall = () => {
         navigate('/client');
       }
     } catch (error) {
+      // Reset flag on error so user can try again
+      hasEndedRef.current = false;
       toast.error('Failed to end call: ' + (error.response?.data?.detail || error.message));
       console.error('End call error:', error);
+      
+      // Still try to cleanup and navigate
+      cleanupTwilio();
+      setTimeout(() => {
+        navigate('/client');
+      }, 2000);
     }
   };
 
