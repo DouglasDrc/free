@@ -118,6 +118,30 @@ backend:
           comment: "BACKEND VERIFIED 100% ACCURATE: Comprehensive testing of 77 tests (97.4% pass rate). Balance calculations perfect, no duplicate deductions, all coin operations working correctly. Simulated user scenario with 3600 coins recharge + 5 sessions = accurate balance every time."
 
 frontend:
+  - task: "Client authentication and login redirect"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/pages/Login.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL CLIENT LOGIN ISSUE: ❌ Client login (client@test.com/client123) stays on login page instead of redirecting to /client dashboard. Authentication appears to succeed but redirect fails. This prevents all client-side testing including call initiation, video calls, and end call button testing. BLOCKING ISSUE: Without client login working, cannot test the complete call flow end-to-end."
+
+  - task: "Therapist profile creation and database setup"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL THERAPIST PROFILE MISSING: ❌ 404 error on GET /api/therapists/profile/me prevents therapist dashboard access. Shows 'Profile not found. Please contact admin to create your profile.' This blocks therapist dashboard functionality but notifications still work via toast. IMPACT: Therapist can receive call notifications but cannot access full dashboard features like accepting calls through UI buttons."
+
   - task: "Balance display in wallet"
     implemented: true
     working: true
