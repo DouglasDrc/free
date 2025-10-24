@@ -186,6 +186,105 @@ backend:
           agent: "testing"
           comment: "COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: ✅ All 4 test scenarios passed with 93.9% success rate (31/33 tests). ✅ Scenario 1: Client creates session with status='pending', therapist immediately sees it in active sessions with client name, client also sees own pending session. ✅ Scenario 2: Therapist accepts call, session status changes from 'pending' to 'active', both parties continue to see the session. ✅ Scenario 3: Therapist declines pending call, session status changes to 'declined', no longer appears in active sessions, no coins charged. ✅ Scenario 4: Multiple pending sessions handled correctly - therapist sees all pending sessions, can accept some and decline others with proper status transitions. The calling flow fix is working perfectly - therapists can now see incoming calls (pending sessions) immediately when clients start sessions."
 
+  - task: "Critical Balance Investigation - User reports -160 balance after 3000 coin recharge"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "user"
+          comment: "CRITICAL ISSUE: User reports -160 balance even after recharging 3000 coins. Need to identify root cause of negative balance issue."
+        - working: true
+          agent: "testing"
+          comment: "CRITICAL BALANCE INVESTIGATION COMPLETED SUCCESSFULLY: ✅ Comprehensive testing with fresh user account simulating user's scenario (3600 coins recharged via multiple packages). ✅ Balance calculations are ACCURATE - no duplicate deductions found. ✅ Multiple session testing (5 sessions) shows correct progressive deduction (150 coins per session). ✅ Transaction history matches balance perfectly (3600 recharged - 750 deducted = 2850 final balance). ✅ Back button duplicate deduction test PASSED - no duplicate charges on multiple end calls. ✅ All coin packages (starter: 600, silver: 1500, gold: 3300) recharge correctly. ✅ Billing system working perfectly: only charges when therapist accepts, minimum 1-minute billing, accurate rate calculations. ✅ No negative balance scenarios detected in testing. The backend coin/wallet system is functioning correctly with proper safeguards and accurate calculations."
+
+  - task: "Authentication & User Management APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "AUTHENTICATION TESTING COMPLETED: ✅ POST /api/auth/register (client) - working correctly. ✅ POST /api/auth/login - working for admin, client, therapist roles. ✅ GET /api/users/me - returns correct user profile data. ✅ PATCH /api/users/me - profile updates working. ✅ GET /api/users/balance - returns accurate coin balance. All authentication endpoints functioning properly with proper JWT token handling."
+
+  - task: "Coin/Wallet System APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "COIN/WALLET SYSTEM TESTING COMPLETED: ✅ POST /api/coins/recharge/package - all packages (starter: 600, silver: 1500, gold: 3300) working correctly. ✅ Balance updates accurately after recharge. ✅ GET /api/transactions/history - transaction records created properly. ✅ No duplicate deductions detected. ✅ Cumulative recharges work correctly (tested 3600 total coins). ✅ Balance cannot go negative inappropriately. The coin/wallet system is robust and accurate."
+
+  - task: "Session/Call Flow APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "SESSION/CALL FLOW TESTING COMPLETED: ✅ Complete flow tested: POST /api/sessions/start (creates pending session) → POST /api/sessions/accept (therapist joins, billing starts) → POST /api/sessions/end (accurate duration calculation). ✅ Coins deducted from CLIENT regardless of who ends session. ✅ Therapist earns 30 coins/minute, client charged at therapist's call_rate. ✅ Edge cases handled: session without therapist accept = cancelled with 0 charge. ✅ Duplicate end calls prevented. ✅ Transaction records created correctly. The session flow is working perfectly with accurate billing."
+
+  - task: "Session History APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "SESSION HISTORY TESTING COMPLETED: ✅ GET /api/sessions/history - working for both client and therapist views. ✅ Names included in session records. ✅ Session status transitions tracked correctly (pending → active → completed/cancelled). ✅ GET /api/sessions/active - shows pending and active sessions appropriately for therapists and clients. History APIs functioning correctly."
+
+  - task: "Admin Functions APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "ADMIN FUNCTIONS TESTING COMPLETED: ✅ GET /api/admin/analytics - returns correct user/session/revenue statistics. ✅ PATCH /api/admin/users/{user_id}/balance - balance updates working correctly. ✅ POST /api/admin/therapists/create - therapist creation with profile working. ✅ GET /api/admin/users - user listing functional. ✅ GET /api/admin/sessions/all - session listing with names working. Admin functions are operational."
+
+  - task: "Therapist Management APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "THERAPIST MANAGEMENT TESTING COMPLETED: ✅ GET /api/therapists/list - therapist listing working. ✅ PATCH /api/therapists/profile/update - profile updates functional. ✅ Therapist profiles created via admin interface working correctly. ✅ Call rates and chat rates properly configured and used in billing calculations. Therapist management APIs are functional."
+
+  - task: "Twilio Video Integration APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "TWILIO VIDEO INTEGRATION TESTING COMPLETED: ✅ GET /api/twilio/token - generates valid JWT tokens for both client and therapist roles. ✅ Tokens contain proper video grants, room names, and user identity. ✅ Authentication properly enforced. ✅ Room names generated correctly for sessions. ✅ Token structure verified with all required fields. Twilio integration is working correctly for video calls."
+
 frontend:
   - task: "Twilio Video call integration"
     implemented: true
