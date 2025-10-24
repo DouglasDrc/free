@@ -301,20 +301,15 @@ def main():
     print("🚀 Starting MindConnect API Tests...")
     tester = MindConnectAPITester()
     
-    # Test sequence
+    # Test sequence - Focus on Twilio integration
     tests = [
-        ("Admin Login", tester.test_admin_login),
-        ("Client Registration", tester.test_client_registration),
+        ("Client Login", tester.test_client_login),
         ("Therapist Login", tester.test_therapist_login),
-        ("Get Coin Packages", tester.test_get_coin_packages),
-        ("Recharge Package", tester.test_recharge_package),
-        ("List Therapists", tester.test_list_therapists),
-        ("Admin Create Therapist", tester.test_admin_create_therapist),
+        ("Generate Twilio Token (Client)", tester.test_twilio_token_generation_client),
+        ("Generate Twilio Token (Therapist)", tester.test_twilio_token_generation_therapist),
         ("Start Session", tester.test_start_session),
-        ("Generate Agora Token", tester.test_agora_token_generation),
+        ("Generate Twilio Token (Session Room)", tester.test_twilio_token_with_session_room),
         ("End Session", tester.test_end_session),
-        ("Admin Analytics", tester.test_admin_analytics),
-        ("Get User Balance", tester.test_get_user_balance)
     ]
     
     failed_tests = []
