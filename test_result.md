@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix Twilio video call integration - error code 53126 related to room type configuration"
+user_problem_statement: "Comprehensive Testing of MindConnect Therapy Platform - Critical Balance Investigation: User reports -160 balance even after recharging 3000 coins"
 
 backend:
   - task: "Twilio client initialization fix"
