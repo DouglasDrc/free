@@ -378,10 +378,32 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     if session["client_id"] != current_user["id"] and session["therapist_id"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    # Check if therapist ever joined - if not, no billing
+    if not session.get("therapist_joined_time"):
+        # Therapist never joined, mark as cancelled with no charge
+        await db.sessions.update_one(
+            {"id": session_data.session_id},
+            {"$set": {
+                "end_time": datetime.now(timezone.utc).isoformat(),
+                "status": "cancelled"
+            }}
+        )
+        return {"message": "Session ended - no charge (therapist never joined)", "coins_spent": 0}
+    
+    # Calculate actual duration from when therapist joined
+    therapist_joined_time = datetime.fromisoformat(session["therapist_joined_time"])
+    end_time = datetime.now(timezone.utc)
+    
+    # Calculate duration in minutes (rounded up)
+    duration_seconds = (end_time - therapist_joined_time).total_seconds()
+    duration = int(duration_seconds / 60) + (1 if duration_seconds % 60 > 0 else 0)
+    
+    # Minimum charge of 1 minute if session was accepted
+    if duration < 1:
+        duration = 1
+    
     # Get therapist profile to get correct rates
     therapist = await db.therapists.find_one({"user_id": session["therapist_id"]}, {"_id": 0})
-    
-    duration = session_data.duration_minutes
     session_type = session.get("session_type", "call")
     
     # Use appropriate rate based on session type
