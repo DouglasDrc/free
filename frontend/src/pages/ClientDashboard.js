@@ -155,6 +155,7 @@ const ClientDashboard = () => {
         showRecharge={true}
         onRechargeClick={() => setShowRechargeDialog(true)}
         onEditProfile={() => setShowProfileEdit(true)}
+        onViewTransactions={() => setShowTransactions(true)}
       />
       
       {/* User Profile Edit Dialog */}
@@ -163,6 +164,12 @@ const ClientDashboard = () => {
         open={showProfileEdit}
         onOpenChange={setShowProfileEdit}
         onProfileUpdated={handleProfileUpdated}
+      />
+      
+      {/* Transaction History Dialog */}
+      <TransactionHistory
+        open={showTransactions}
+        onOpenChange={setShowTransactions}
       />
       
       {/* Recharge Dialog */}
