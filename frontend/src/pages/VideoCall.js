@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import AgoraRTC from 'agora-rtc-sdk-ng';
+import Video from 'twilio-video';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, User } from 'lucide-react';
@@ -12,10 +12,9 @@ const VideoCall = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
-  const [agoraClient, setAgoraClient] = useState(null);
-  const [localAudioTrack, setLocalAudioTrack] = useState(null);
-  const [localVideoTrack, setLocalVideoTrack] = useState(null);
-  const [remoteUsers, setRemoteUsers] = useState({});
+  const [room, setRoom] = useState(null);
+  const [localTrack, setLocalTrack] = useState(null);
+  const [remoteParticipants, setRemoteParticipants] = useState(new Map());
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
@@ -29,7 +28,7 @@ const VideoCall = () => {
 
   useEffect(() => {
     fetchSession();
-    initializeAgora();
+    joinRoom();
     
     // Start duration counter
     durationIntervalRef.current = setInterval(() => {
@@ -41,26 +40,9 @@ const VideoCall = () => {
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
       }
-      cleanupAgora();
+      cleanupTwilio();
     };
   }, []);
-
-  // Play local video when track is ready
-  useEffect(() => {
-    if (localVideoTrack && localVideoRef.current) {
-      localVideoTrack.play(localVideoRef.current);
-    }
-  }, [localVideoTrack]);
-
-  // Play remote video when users join
-  useEffect(() => {
-    if (remoteVideoRef.current && Object.keys(remoteUsers).length > 0) {
-      const remoteUser = Object.values(remoteUsers)[0];
-      if (remoteUser && remoteUser.videoTrack) {
-        remoteUser.videoTrack.play(remoteVideoRef.current);
-      }
-    }
-  }, [remoteUsers]);
 
   const fetchSession = async () => {
     try {
@@ -79,15 +61,15 @@ const VideoCall = () => {
         setCallRate(rate || 150);
       }
     } catch (error) {
-      toast.error('Failed to fetch session');
+      console.error('Failed to fetch session:', error);
     }
   };
 
-  const initializeAgora = async () => {
+  const joinRoom = async () => {
     try {
       const token = localStorage.getItem('token');
       
-      // Get session info first
+      // Get session info
       const sessionsRes = await axios.get(`${API}/sessions/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -98,117 +80,144 @@ const VideoCall = () => {
         return;
       }
 
-      // Generate Agora token
-      const randomUid = Math.floor(Math.random() * 10000);
+      // Get Twilio token
       const tokenRes = await axios.get(
-        `${API}/agora/token?channel_name=${foundSession.channel_name}&user_id=${randomUid}`,
+        `${API}/twilio/token?room_name=${foundSession.channel_name}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const { app_id, token: agoraToken, channel_name } = tokenRes.data;
+      const { token: twilioToken, room_name } = tokenRes.data;
 
-      // Create Agora client
-      const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
-      setAgoraClient(client);
+      // Connect to Twilio Video room
+      const connectedRoom = await Video.connect(twilioToken, {
+        name: room_name,
+        audio: true,
+        video: { width: 640 }
+      });
 
-      // Set up event handlers
-      client.on('user-published', async (user, mediaType) => {
-        await client.subscribe(user, mediaType);
-        
-        if (mediaType === 'video') {
-          setRemoteUsers(prev => ({ ...prev, [user.uid]: user }));
-          setRemoteUserConnected(true);
-          toast.success('Other user connected!');
-        }
-        
-        if (mediaType === 'audio') {
-          user.audioTrack?.play();
+      setRoom(connectedRoom);
+
+      // Attach local tracks
+      connectedRoom.localParticipant.videoTracks.forEach(publication => {
+        if (localVideoRef.current) {
+          const track = publication.track;
+          localVideoRef.current.appendChild(track.attach());
+          setLocalTrack(track);
         }
       });
 
-      client.on('user-unpublished', (user, mediaType) => {
-        if (mediaType === 'video') {
-          setRemoteUsers(prev => {
-            const updated = { ...prev };
-            delete updated[user.uid];
-            return updated;
-          });
-        }
+      // Handle existing participants
+      connectedRoom.participants.forEach(participant => {
+        participantConnected(participant);
       });
 
-      client.on('user-left', (user) => {
-        console.log('User left:', user.uid);
-        setRemoteUsers(prev => {
-          const updated = { ...prev };
-          delete updated[user.uid];
-          return updated;
-        });
-        setRemoteUserConnected(false);
-        
-        // Auto end call when remote user leaves
-        if (!hasEndedRef.current) {
-          toast.info('Other user left the call');
-          setTimeout(() => {
-            if (!hasEndedRef.current) {
-              handleAutoEndCall();
-            }
-          }, 2000);
-        }
+      // Handle new participants
+      connectedRoom.on('participantConnected', participant => {
+        console.log('Participant connected:', participant.identity);
+        participantConnected(participant);
       });
 
-      // Join channel
-      await client.join(app_id, channel_name, agoraToken, randomUid);
-
-      // Create and publish local tracks
-      const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-      const videoTrack = await AgoraRTC.createCameraVideoTrack();
-      
-      setLocalAudioTrack(audioTrack);
-      setLocalVideoTrack(videoTrack);
-
-      // Publish tracks
-      await client.publish([audioTrack, videoTrack]);
+      connectedRoom.on('participantDisconnected', participant => {
+        console.log('Participant disconnected:', participant.identity);
+        participantDisconnected(participant);
+      });
 
       toast.success('Connected to call!');
     } catch (error) {
-      console.error('Agora initialization error:', error);
-      toast.error('Failed to connect to call: ' + error.message);
+      console.error('Twilio connection error:', error);
+      toast.error('Failed to connect: ' + error.message);
     }
   };
 
-  const cleanupAgora = async () => {
+  const participantConnected = (participant) => {
+    setRemoteParticipants(prev => new Map(prev).set(participant.sid, participant));
+    setRemoteUserConnected(true);
+    toast.success('Other user connected!');
+
+    // Attach existing tracks
+    participant.tracks.forEach(publication => {
+      if (publication.isSubscribed) {
+        attachTrack(publication.track);
+      }
+    });
+
+    // Handle new tracks
+    participant.on('trackSubscribed', track => {
+      attachTrack(track);
+    });
+
+    participant.on('trackUnsubscribed', track => {
+      detachTrack(track);
+    });
+  };
+
+  const participantDisconnected = (participant) => {
+    setRemoteParticipants(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(participant.sid);
+      return newMap;
+    });
+    
+    setRemoteUserConnected(false);
+    toast.info('Other user left the call');
+    
+    // Auto-end call after disconnect
+    if (!hasEndedRef.current) {
+      setTimeout(() => {
+        if (!hasEndedRef.current) {
+          handleAutoEndCall();
+        }
+      }, 2000);
+    }
+  };
+
+  const attachTrack = (track) => {
+    if (track.kind === 'video' && remoteVideoRef.current) {
+      const existingElements = remoteVideoRef.current.getElementsByTagName(track.kind);
+      Array.from(existingElements).forEach(el => el.remove());
+      remoteVideoRef.current.appendChild(track.attach());
+    } else if (track.kind === 'audio') {
+      track.attach();
+    }
+  };
+
+  const detachTrack = (track) => {
+    track.detach().forEach(element => element.remove());
+  };
+
+  const cleanupTwilio = () => {
     try {
-      // Stop and close local tracks
-      if (localAudioTrack) {
-        localAudioTrack.stop();
-        localAudioTrack.close();
+      if (room) {
+        room.disconnect();
       }
-      if (localVideoTrack) {
-        localVideoTrack.stop();
-        localVideoTrack.close();
-      }
-      
-      // Leave channel
-      if (agoraClient) {
-        await agoraClient.leave();
-      }
-      
-      console.log('Agora cleanup complete');
+      console.log('Twilio cleanup complete');
     } catch (error) {
       console.error('Cleanup error:', error);
     }
   };
 
-  const toggleMute = async () => {
-    if (localAudioTrack) {
-      await localAudioTrack.setEnabled(isMuted);
+  const toggleMute = () => {
+    if (room) {
+      room.localParticipant.audioTracks.forEach(publication => {
+        if (isMuted) {
+          publication.track.enable();
+        } else {
+          publication.track.disable();
+        }
+      });
       setIsMuted(!isMuted);
     }
   };
 
-  const toggleVideo = async () => {
-    if (localVideoTrack) {
-      await localVideoTrack.setEnabled(isVideoOff);
+  const toggleVideo = () => {
+    if (room) {
+      room.localParticipant.videoTracks.forEach(publication => {
+        if (isVideoOff) {
+          publication.track.enable();
+        } else {
+          publication.track.disable();
+        }
+      });
       setIsVideoOff(!isVideoOff);
     }
   };
@@ -226,9 +235,8 @@ const VideoCall = () => {
         duration_minutes: durationMinutes
       }, { headers: { Authorization: `Bearer ${token}` } });
       
-      await cleanupAgora();
+      cleanupTwilio();
       
-      // Get user role to determine redirect
       const userRes = await axios.get(`${API}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -240,7 +248,6 @@ const VideoCall = () => {
       }
     } catch (error) {
       console.error('Auto end call error:', error);
-      // Still navigate away even if API fails
       navigate('/client');
     }
   };
@@ -259,9 +266,8 @@ const VideoCall = () => {
       }, { headers: { Authorization: `Bearer ${token}` } });
       
       toast.success('Call ended');
-      await cleanupAgora();
+      cleanupTwilio();
       
-      // Get user role to determine redirect
       const userRes = await axios.get(`${API}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -292,10 +298,10 @@ const VideoCall = () => {
           data-testid="remote-video-container"
           className="w-full h-full bg-gray-800 flex items-center justify-center"
         >
-          {Object.keys(remoteUsers).length === 0 && (
+          {!remoteUserConnected && (
             <div className="text-center text-white">
               <User className="w-24 h-24 mx-auto mb-4 opacity-50" />
-              <p className="text-xl">Waiting for therapist to join...</p>
+              <p className="text-xl">Waiting for other person to join...</p>
             </div>
           )}
         </div>
