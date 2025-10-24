@@ -342,11 +342,12 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Critical Balance Investigation - User reports -160 balance after 3000 coin recharge"
     - "Therapist notification for incoming calls"
     - "Twilio Video call integration"
   stuck_tasks: []
-  test_all: false
-  test_priority: "high_first"
+  test_all: true
+  test_priority: "critical_first"
 
 agent_communication:
     - agent: "main"
