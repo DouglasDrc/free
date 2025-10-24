@@ -258,3 +258,7 @@ agent_communication:
       message: "BUG REPORTED: Therapist not get notified when client starts call"
     - agent: "main"
       message: "FIXED notification system. Root cause: Notification logic was checking session count increase, which doesn't work when sessions are accepted/declined. IMPROVED LOGIC: 1) Changed from tracking count to tracking session IDs using a Set. 2) Now detects truly NEW sessions by comparing session IDs. 3) Only notifies for 'pending' status sessions (incoming calls). 4) Shows toast notification with client name for each new incoming call. 5) Plays audio notification sound. 6) Position set to top-center for better visibility. Frontend will hot-reload. Need to test real-time notifications."
+    - agent: "user"
+      message: "BUG REPORTED: Unable to cut/end the phone call"
+    - agent: "main"
+      message: "FIXED end call issue. Root cause: SessionEnd Pydantic model required 'duration_minutes' field, but frontend was only sending 'session_id' (as backend now auto-calculates duration from therapist_joined_time). FIX: Made duration_minutes Optional in SessionEnd model (line 127 in server.py). Backend auto-reloaded successfully. The end call button should now work - both client and therapist can end calls and will be properly charged based on actual duration."
