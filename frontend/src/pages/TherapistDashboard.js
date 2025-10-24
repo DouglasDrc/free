@@ -119,12 +119,21 @@ const TherapistDashboard = () => {
       });
       
       const newSessions = response.data;
+      const newSessionIds = new Set(newSessions.map(s => s.id));
       
-      // Show notification if new sessions arrived
-      if (newSessions.length > previousSessionCount && previousSessionCount > 0) {
-        toast.success(`New incoming call from ${newSessions[newSessions.length - 1].client_name}!`, {
-          duration: 10000,
-          icon: '📞'
+      // Find truly new sessions (pending status only - incoming calls)
+      const incomingSessions = newSessions.filter(s => 
+        s.status === 'pending' && !previousSessionIds.has(s.id)
+      );
+      
+      // Show notification for each new incoming call
+      if (incomingSessions.length > 0 && previousSessionIds.size > 0) {
+        incomingSessions.forEach(session => {
+          toast.success(`📞 New incoming call from ${session.client_name}!`, {
+            duration: 10000,
+            icon: '📞',
+            position: 'top-center'
+          });
         });
         
         // Play notification sound
@@ -136,7 +145,7 @@ const TherapistDashboard = () => {
         }
       }
       
-      setPreviousSessionCount(newSessions.length);
+      setPreviousSessionIds(newSessionIds);
       setActiveSessions(newSessions);
     } catch (error) {
       console.error('Failed to fetch active sessions');
