@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
+import InstallPrompt from './components/InstallPrompt';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -24,9 +25,11 @@ function App() {
           <Route path="/therapist" element={<TherapistDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/call/:sessionId" element={<VideoCall />} />
+          <Route path="/video-call/:sessionId" element={<VideoCall />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/support" element={<Support />} />
         </Routes>
+        <InstallPrompt />
       </BrowserRouter>
       <Toaster position="top-right" />
     </div>
