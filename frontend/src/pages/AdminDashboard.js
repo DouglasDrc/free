@@ -850,6 +850,10 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="callhistory">
+            <CallHistory role="admin" />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
