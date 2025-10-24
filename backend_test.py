@@ -199,19 +199,57 @@ class MindConnectAPITester:
             self.created_session_id = response['session_id']
         return success
 
-    def test_agora_token_generation(self):
-        """Test Agora token generation"""
-        if not self.client_token or not self.created_session_id:
+    def test_twilio_token_generation_client(self):
+        """Test Twilio token generation for client"""
+        if not self.client_token:
             return False
         
         success, response = self.run_test(
-            "Generate Agora Token",
+            "Generate Twilio Token (Client)",
             "GET",
-            f"agora/token?channel_name=session_{self.created_session_id}&user_id=12345",
+            "twilio/token?room_name=test-room-client",
             200,
             headers={'Authorization': f'Bearer {self.client_token}'}
         )
-        return success and 'token' in response and 'app_id' in response
+        if success:
+            print(f"   Token response: {response}")
+            return 'token' in response and 'room_name' in response and 'identity' in response
+        return False
+
+    def test_twilio_token_generation_therapist(self):
+        """Test Twilio token generation for therapist"""
+        if not self.therapist_token:
+            return False
+        
+        success, response = self.run_test(
+            "Generate Twilio Token (Therapist)",
+            "GET",
+            "twilio/token?room_name=test-room-therapist",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+        if success:
+            print(f"   Token response: {response}")
+            return 'token' in response and 'room_name' in response and 'identity' in response
+        return False
+
+    def test_twilio_token_with_session_room(self):
+        """Test Twilio token generation with session room name"""
+        if not self.client_token or not self.created_session_id:
+            return False
+        
+        room_name = f"session_{self.created_session_id}"
+        success, response = self.run_test(
+            "Generate Twilio Token (Session Room)",
+            "GET",
+            f"twilio/token?room_name={room_name}",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        if success:
+            print(f"   Token response: {response}")
+            return 'token' in response and response.get('room_name') == room_name and 'identity' in response
+        return False
 
     def test_end_session(self):
         """Test ending a session"""
