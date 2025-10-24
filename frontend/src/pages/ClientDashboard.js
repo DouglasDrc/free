@@ -366,6 +366,11 @@ const ClientDashboard = () => {
         <div className="mt-8">
           <CallHistory role="client" userId={user?.id} />
         </div>
+
+        {/* Balance Debugger - Temporary for troubleshooting */}
+        <div className="mt-8">
+          <BalanceDebugger />
+        </div>
       </div>
     </div>
   );
