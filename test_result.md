@@ -225,6 +225,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Therapist notification for incoming calls"
     - "Twilio Video call integration"
   stuck_tasks: []
   test_all: false
