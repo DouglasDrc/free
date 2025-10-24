@@ -84,6 +84,11 @@ const ClientDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   const handleStartSession = async (therapistId, sessionType) => {
     if (balance < 100) {
       toast.error('Insufficient coins! Please recharge.');
