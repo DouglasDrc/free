@@ -353,10 +353,11 @@ async def start_session(session_data: SessionStart, current_user: dict = Depends
         "channel_name": channel_name,
         "session_type": session_data.session_type,
         "start_time": datetime.now(timezone.utc).isoformat(),
+        "therapist_joined_time": None,  # Billing starts only when therapist joins
         "end_time": None,
         "duration_minutes": 0,
         "coins_spent": 0,
-        "status": "active"
+        "status": "pending"  # pending until therapist joins, then becomes active
     }
     
     await db.sessions.insert_one(session_doc)
