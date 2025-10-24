@@ -82,6 +82,17 @@ const MobileNav = ({ user, balance, onLogout, showRecharge, onRechargeClick, onE
         {isOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200 pt-4 animate-slide-down">
             <div className="flex flex-col space-y-3">
+              {user && (
+                <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <UserIcon className="w-4 h-4 text-gray-600" />
+                    <span className="font-semibold text-gray-800">{user.name}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{user.email}</p>
+                  {user.phone && <p className="text-sm text-gray-600">{user.phone}</p>}
+                </div>
+              )}
+              
               {balance !== undefined && (
                 <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -90,6 +101,20 @@ const MobileNav = ({ user, balance, onLogout, showRecharge, onRechargeClick, onE
                   </div>
                   <span className="text-xl font-bold">{balance}</span>
                 </div>
+              )}
+              
+              {onEditProfile && (
+                <Button 
+                  onClick={() => {
+                    onEditProfile();
+                    setIsOpen(false);
+                  }} 
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <UserIcon className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
               )}
               
               {showRecharge && onRechargeClick && (
