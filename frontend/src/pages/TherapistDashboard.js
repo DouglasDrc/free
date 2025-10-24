@@ -465,25 +465,14 @@ const TherapistDashboard = () => {
                 </form>
               </DialogContent>
             </Dialog>
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                localStorage.removeItem('token');
-                navigate('/login');
-              }}
-              data-testid="therapist-logout-btn"
-              className="text-gray-700 hover:text-gray-900"
-            >
-              <LogOut className="w-4 h-4 mr-2" /> Logout
-            </Button>
           </div>
         </div>
-      </nav>
+      </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Therapist Dashboard</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2">Therapist Dashboard</h1>
           <p className="text-gray-600">Manage your sessions and earnings</p>
         </div>
 
