@@ -138,73 +138,48 @@ const ClientDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
-      {/* Navbar */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-teal-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center">
-              <Video className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold">MindConnect</span>
+      {/* Mobile-Friendly Navbar */}
+      <MobileNav 
+        user={user}
+        balance={balance}
+        onLogout={handleLogout}
+        showRecharge={true}
+        onRechargeClick={() => setShowRechargeDialog(true)}
+      />
+      
+      {/* Recharge Dialog */}
+      <Dialog open={showRechargeDialog} onOpenChange={setShowRechargeDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Recharge Coins</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-6">
+            {packages.map((pkg) => (
+              <Card key={pkg.id} className="border-2 hover:border-teal-500 transition-all duration-300">
+                <CardContent className="p-4 md:p-6 text-center">
+                  <h3 className="text-lg md:text-xl font-bold mb-2 capitalize">{pkg.name}</h3>
+                  <div className="my-4">
+                    <CoinsIcon className="w-12 h-12 md:w-16 md:h-16 mx-auto text-yellow-500" />
+                  </div>
+                  <p className="text-2xl md:text-3xl font-bold text-teal-600 mb-2">₹{pkg.price}</p>
+                  <p className="text-base md:text-lg font-semibold mb-1">Get {pkg.coins} coins</p>
+                  <p className="text-sm text-green-600 mb-4">Bonus: {pkg.bonus} coins!</p>
+                  <Button 
+                    onClick={() => {
+                      handleRechargePackage(pkg.id);
+                      setShowRechargeDialog(false);
+                    }}
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white"
+                  >
+                    Choose Plan
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <div className="flex items-center gap-4">
-            <Button onClick={() => navigate('/faq')} variant="ghost" className="text-gray-700">FAQ</Button>
-            <Button onClick={() => navigate('/support')} variant="ghost" className="text-gray-700">Support</Button>
-            <div className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-6 py-3 rounded-xl" data-testid="client-coin-balance">
-              <CoinsIcon className="w-6 h-6" />
-              <div>
-                <p className="text-xs opacity-80">My Coins</p>
-                <p className="text-lg font-bold">{balance}</p>
-              </div>
-            </div>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button data-testid="recharge-dialog-btn" className="bg-teal-600 hover:bg-teal-700 text-white">
-                  Recharge Wallet
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">Recharge Coins</DialogTitle>
-                </DialogHeader>
-                <div className="grid md:grid-cols-3 gap-6 mt-6">
-                  {packages.map((pkg) => (
-                    <Card key={pkg.id} className="border-2 hover:border-teal-500 transition-all duration-300">
-                      <CardContent className="p-6 text-center">
-                        <h3 className="text-xl font-bold mb-2 capitalize">{pkg.name}</h3>
-                        <div className="my-4">
-                          <CoinsIcon className="w-16 h-16 mx-auto text-yellow-500" />
-                        </div>
-                        <p className="text-3xl font-bold text-teal-600 mb-2">₹{pkg.price}</p>
-                        <p className="text-lg font-semibold mb-1">Get {pkg.coins} coins</p>
-                        <p className="text-sm text-green-600 mb-4">Bonus: {pkg.bonus} coins!</p>
-                        <Button 
-                          onClick={() => handleRechargePackage(pkg.id)}
-                          disabled={loading}
-                          className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white"
-                        >
-                          Choose Plan
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </DialogContent>
-            </Dialog>
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                localStorage.removeItem('token');
-                navigate('/login');
-              }}
-              data-testid="client-logout-btn"
-              className="text-gray-700 hover:text-gray-900"
-            >
-              <LogOut className="w-4 h-4 mr-2" /> Logout
-            </Button>
-          </div>
-        </div>
-      </nav>
+        </DialogContent>
+      </Dialog>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
