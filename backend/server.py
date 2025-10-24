@@ -541,11 +541,20 @@ async def get_session_history(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/sessions/active")
 async def get_active_sessions(current_user: dict = Depends(get_current_user)):
-    query = {"status": "active"}
-    if current_user["role"] == "client":
-        query["client_id"] = current_user["id"]
-    elif current_user["role"] == "therapist":
-        query["therapist_id"] = current_user["id"]
+    # Therapists see pending (incoming) and active sessions
+    # Clients only see active sessions they're in
+    if current_user["role"] == "therapist":
+        query = {
+            "therapist_id": current_user["id"],
+            "status": {"$in": ["pending", "active"]}
+        }
+    elif current_user["role"] == "client":
+        query = {
+            "client_id": current_user["id"],
+            "status": {"$in": ["pending", "active"]}
+        }
+    else:
+        query = {"status": {"$in": ["pending", "active"]}}
     
     sessions = await db.sessions.find(query, {"_id": 0}).to_list(100)
     
