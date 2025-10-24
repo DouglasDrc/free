@@ -754,6 +754,7 @@ def main():
         ("Therapist Registration and Login", tester.test_therapist_registration_and_login),
         ("Coin Deduction - Client Ends Session", tester.test_coin_deduction_client_ends_session),
         ("Coin Deduction - Therapist Ends Session (CRITICAL)", tester.test_coin_deduction_therapist_ends_session),
+        ("Transaction Records Verification", tester.test_transaction_records),
     ]
     
     failed_tests = []
