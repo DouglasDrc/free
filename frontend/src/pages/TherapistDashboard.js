@@ -604,6 +604,7 @@ const TherapistDashboard = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 
