@@ -384,9 +384,8 @@ class MindConnectAPITester:
         success, response = self.run_test(
             f"Admin Add {amount} Coins to Client",
             "PATCH",
-            f"admin/users/{client_user_id}/balance",
+            f"admin/users/{client_user_id}/balance?coins={amount}",
             200,
-            data=amount,
             headers={'Authorization': f'Bearer {self.admin_token}'}
         )
         return success
