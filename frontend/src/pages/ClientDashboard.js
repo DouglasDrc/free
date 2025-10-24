@@ -152,6 +152,15 @@ const ClientDashboard = () => {
         onLogout={handleLogout}
         showRecharge={true}
         onRechargeClick={() => setShowRechargeDialog(true)}
+        onEditProfile={() => setShowProfileEdit(true)}
+      />
+      
+      {/* User Profile Edit Dialog */}
+      <UserProfileEdit
+        user={user}
+        open={showProfileEdit}
+        onOpenChange={setShowProfileEdit}
+        onProfileUpdated={handleProfileUpdated}
       />
       
       {/* Recharge Dialog */}
