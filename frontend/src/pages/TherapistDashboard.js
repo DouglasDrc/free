@@ -323,6 +323,7 @@ const TherapistDashboard = () => {
         onLogout={handleLogout}
         showRecharge={false}
         onEditProfile={() => setShowUserProfileEdit(true)}
+        onViewTransactions={() => setShowTransactions(true)}
       />
       
       {/* User Profile Edit Dialog */}
@@ -331,6 +332,12 @@ const TherapistDashboard = () => {
         open={showUserProfileEdit}
         onOpenChange={setShowUserProfileEdit}
         onProfileUpdated={handleUserProfileUpdated}
+      />
+      
+      {/* Transaction History Dialog */}
+      <TransactionHistory
+        open={showTransactions}
+        onOpenChange={setShowTransactions}
       />
       
       {/* Therapist Controls - Mobile Friendly */}
