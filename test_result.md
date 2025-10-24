@@ -372,7 +372,7 @@ frontend:
     implemented: true
     working: false
     file: "/app/frontend/src/pages/VideoCall.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -385,6 +385,9 @@ frontend:
         - working: false
           agent: "testing"
           comment: "CRITICAL ISSUE FOUND: ✅ Client login working, call initiation successful (POST /api/sessions/start returns 200). ✅ Video call page loads correctly with end call button visible and clickable. ❌ CRITICAL BUG: End call button click does NOT trigger /api/sessions/end API call. ❌ No 'Call ended' toast notification appears. ❌ No redirect to dashboard after end call. ❌ Session cleanup happens via page unload events but not via button click. The handleEndCall function in VideoCall.js is not properly connected to the end call button or has a blocking issue preventing API execution."
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL CALL FLOW TESTING RESULTS: ❌ CLIENT LOGIN FAILING - client@test.com stays on login page instead of redirecting to dashboard, preventing call initiation testing. ❌ THERAPIST PROFILE MISSING - 404 error on /api/therapists/profile/me prevents dashboard access. ✅ NOTIFICATION SYSTEM WORKING - toast shows incoming calls despite profile issues. ❌ CANNOT TEST END CALL BUTTON - client login failure prevents reaching video call page. BLOCKING ISSUES: 1) Client authentication not redirecting properly, 2) Missing therapist profile data in database. Both prevent comprehensive video call testing."
 
   - task: "Therapist notification for incoming calls"
     implemented: true
