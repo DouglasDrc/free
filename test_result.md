@@ -159,7 +159,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Twilio token generation endpoint"
     - "Twilio Video call integration"
   stuck_tasks: []
   test_all: false
