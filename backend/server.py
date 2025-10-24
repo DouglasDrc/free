@@ -448,26 +448,35 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     therapist_joined_time = datetime.fromisoformat(session["therapist_joined_time"])
     end_time = datetime.now(timezone.utc)
     
-    # Calculate duration in minutes (rounded up)
+    # Calculate duration in seconds first
     duration_seconds = (end_time - therapist_joined_time).total_seconds()
-    duration = int(duration_seconds / 60) + (1 if duration_seconds % 60 > 0 else 0)
     
-    # Minimum charge of 1 minute if session was accepted
-    if duration < 1:
-        duration = 1
+    # NEW PRICING LOGIC:
+    # If call is MORE than 10 seconds, minimum charge is 100 coins (1 minute equivalent)
+    # Otherwise charge per second proportionally
     
-    # Get therapist profile to get correct rates
-    therapist = await db.therapists.find_one({"user_id": session["therapist_id"]}, {"_id": 0})
-    session_type = session.get("session_type", "call")
+    if duration_seconds > 10:
+        # Calculate duration in minutes (rounded up)
+        duration = int(duration_seconds / 60) + (1 if duration_seconds % 60 > 0 else 0)
+        # Minimum 1 minute billing (100 coins)
+        if duration < 1:
+            duration = 1
+    else:
+        # Less than 10 seconds = no charge
+        duration = 0
     
-    # Use appropriate rate based on session type
-    if session_type == "chat":
-        rate_per_minute = therapist.get("chat_rate", 100) if therapist else 100
-    else:  # call
-        rate_per_minute = therapist.get("call_rate", 150) if therapist else 150
+    # NEW COIN STRUCTURE (per minute):
+    # Client pays: 100 coins
+    # Therapist earns: 30 coins
+    # Admin commission: 70 coins
     
-    coins_spent = duration * rate_per_minute
-    therapist_earnings = duration * 30  # 30 coins per minute for therapist (fixed)
+    RATE_PER_MINUTE = 100  # Client pays 100 coins per minute
+    THERAPIST_EARNINGS_PER_MIN = 30  # Therapist gets 30 coins per minute
+    ADMIN_COMMISSION_PER_MIN = 70  # Admin gets 70 coins per minute
+    
+    coins_spent = duration * RATE_PER_MINUTE  # Client charge
+    therapist_earnings = duration * THERAPIST_EARNINGS_PER_MIN  # Therapist earnings
+    admin_commission = duration * ADMIN_COMMISSION_PER_MIN  # Admin commission
     
     # Get client's current balance
     client = await db.users.find_one({"id": session["client_id"]}, {"_id": 0, "coins": 1})
@@ -477,13 +486,16 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     current_balance = client.get("coins", 0)
     new_balance = current_balance - coins_spent
     
-    # Update session
+    # Update session with new fields
     await db.sessions.update_one(
         {"id": session_data.session_id},
         {"$set": {
             "end_time": datetime.now(timezone.utc).isoformat(),
             "duration_minutes": duration,
+            "duration_seconds": int(duration_seconds),
             "coins_spent": coins_spent,
+            "therapist_earnings": therapist_earnings,
+            "admin_commission": admin_commission,
             "status": "completed"
         }}
     )
