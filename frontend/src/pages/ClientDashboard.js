@@ -21,6 +21,7 @@ const ClientDashboard = () => {
   const [packages, setPackages] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [showRechargeDialog, setShowRechargeDialog] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
