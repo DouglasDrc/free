@@ -128,23 +128,22 @@ const TherapistDashboard = () => {
         s.status === 'pending' && !previousSessionIds.has(s.id)
       );
       
-      // Show notification for each new incoming call
-      if (incomingSessions.length > 0 && previousSessionIds.size > 0) {
-        incomingSessions.forEach(session => {
-          toast.success(`📞 New incoming call from ${session.client_name}!`, {
-            duration: 10000,
-            icon: '📞',
-            position: 'top-center'
-          });
-        });
+      // Show full-screen modal for first incoming call
+      if (incomingSessions.length > 0 && previousSessionIds.size > 0 && !showIncomingCall) {
+        setShowIncomingCall(incomingSessions[0]);
         
-        // Play notification sound
-        try {
-          const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHmq+8OOYSwsNUrDn77BdGAg+ltryxnMpBSh+zPLaizsIGGS57OihUhELTKXh8bllHAU2jdXzzn0vBSF1xe/glEIJFV624OytYBoGPJPY88p2KwUme8rx3I4+CRZiturqpVMRC0mi4PK8aB8GM4nU8tGAMQYfcsLu45ZFCxFYr+ftrWEaBkCY3PLJdSsFKH3L8tyOPQkWY7zs6qZUEQtJn9/yvmwhBTOJ1PLSgDEGH3HB7uOWRQsRV6/n7a1hGgZAl9zyyXUrBSh9y/LcjjwJFmO77OqmVBELSZ/f8r5sIQUzidTy0oAxBh9xwe7jlkULEVev5+2tYRoGQJfc8sl1KwUofcvy3I48CRZju+zqplQRC0mf3/K+bCEFM4nU8tKAMQYfccHu45ZFCxFXr+ftrWEaBkCX3PLJdSsFKH3L8tyOPAkWY7vs6qZUEQtJn9/yvmwhBTOJ1PLSgDEGH3HB7uOWRQsRV6/n7a1hGgZAl9zyyXUrBSh9y/LcjjwJFmO77OqmVBELSZ/f8r5sIQUzidTy0oAxBh9xwe7jlkULEVev5+2tYRoGQJfc8sl1KwUofcvy3I48CRZju+zqplQRC0mf3/K+bCEFM4nU8tKAMQYfccHu45ZFCxFXr+ftrWEaBkCX3PLJdSsFKH3L8tyOPAkWY7vs6qZUEQtJn9/yvmwhBTOJ1PLSgDEGH3HB7uOWRQsRV6/n7a1hGgZAl9zyyXUrBSh9y/LcjjwJFmO77OqmVBELSZ/f8r5sIQUzidTy0oAxBh9xwe7jlkULEVev5+2tYRoGQJfc8sl1KwUofcvy3I48CRZju+zqplQRC0mf3/K+bCEFM4nU8tKAMQYfccHu45ZFCxFXr+ftrWEaBkCX3PLJdSsFKH3L8tyOPAkWY7vs6qZUEQtJn9/yvmwhBTOJ1PLSgDEGH3HB7uOWRQsRV6/n7a1hGgZAl9zyyXUrBSh9y/LcjjwJFmO77OqmVBELSZ/f8r5sIQUzidTy0oAxBh9xwe7jlkULEVev5+2tYRoGQJfc8sl1KwUofcvy3I48CRZju+zqplQRC0mf3/K+bCEFM4nU8tKAMQYfccHu45ZFCxFXr+ftrWEaBkCX3PLJdSsFKH3L8tyOPAkWY7vs6qZUEQtJn9/yvmwhBTOJ1PLSgDEGH3HB7uOWRQ==');
-          audio.play().catch(e => console.log('Audio play failed:', e));
-        } catch (e) {
-          console.log('Audio not supported');
-        }
+        // Also show toast notification
+        toast.success(`📞 New incoming call from ${incomingSessions[0].client_name}!`, {
+          duration: 10000,
+          icon: '📞',
+          position: 'top-center'
+        });
+      }
+      
+      // If no pending sessions, hide modal
+      const hasPendingSessions = newSessions.some(s => s.status === 'pending');
+      if (!hasPendingSessions && showIncomingCall) {
+        setShowIncomingCall(null);
       }
       
       setPreviousSessionIds(newSessionIds);
