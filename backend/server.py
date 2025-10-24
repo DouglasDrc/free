@@ -459,6 +459,14 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     coins_spent = duration * rate_per_minute
     therapist_earnings = duration * 30  # 30 coins per minute for therapist (fixed)
     
+    # Get client's current balance
+    client = await db.users.find_one({"id": session["client_id"]}, {"_id": 0, "coins": 1})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    current_balance = client.get("coins", 0)
+    new_balance = current_balance - coins_spent
+    
     # Update session
     await db.sessions.update_one(
         {"id": session_data.session_id},
@@ -470,11 +478,15 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
         }}
     )
     
-    # Deduct coins from client
+    # Deduct coins from client (allow negative balance but log it)
     await db.users.update_one(
         {"id": session["client_id"]},
         {"$inc": {"coins": -coins_spent}}
     )
+    
+    # Log warning if balance goes negative
+    if new_balance < 0:
+        print(f"WARNING: Client {session['client_id']} balance went negative: {current_balance} - {coins_spent} = {new_balance}")
     
     # Add coins to therapist
     await db.users.update_one(
