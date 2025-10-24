@@ -42,13 +42,30 @@ const ClientDashboard = () => {
   const fetchUserData = async () => {
     try {
       const token = localStorage.getItem('token');
+      // Add cache busting timestamp to force fresh data
+      const timestamp = Date.now();
       const [profileRes, balanceRes] = await Promise.all([
-        axios.get(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/users/balance`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API}/users/me?t=${timestamp}`, { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          } 
+        }),
+        axios.get(`${API}/users/balance?t=${timestamp}`, { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          } 
+        })
       ]);
       setUser(profileRes.data);
-      setBalance(balanceRes.data.coins);
+      const freshBalance = balanceRes.data.coins;
+      console.log('🔍 DEBUG: Fresh balance from API:', freshBalance);
+      setBalance(freshBalance);
     } catch (error) {
+      console.error('Failed to fetch user data:', error);
       toast.error('Failed to fetch user data');
       navigate('/login');
     }
