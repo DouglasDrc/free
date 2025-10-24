@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '../components/ui/button';
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
 import { Video, LogOut, Wallet, Search, Star, Clock, Phone, MessageCircle, CoinsIcon } from 'lucide-react';
+import MobileNav from '../components/MobileNav';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
