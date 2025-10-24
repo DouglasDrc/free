@@ -510,11 +510,14 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     if new_balance < 0:
         print(f"WARNING: Client {session['client_id']} balance went negative: {current_balance} - {coins_spent} = {new_balance}")
     
-    # Add coins to therapist
+    # Add coins to therapist (30 coins per minute)
     await db.users.update_one(
         {"id": session["therapist_id"]},
         {"$inc": {"coins": therapist_earnings}}
     )
+    
+    # Add admin commission to a dedicated admin commission tracking (or admin user)
+    # For now, just log it in transactions for tracking
     
     # Record transactions
     await db.transactions.insert_one({
@@ -522,7 +525,7 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
         "user_id": session["client_id"],
         "type": "deduction",
         "amount": coins_spent,
-        "description": f"Session with therapist",
+        "description": f"Video session - {duration} min @ 100 coins/min",
         "timestamp": datetime.now(timezone.utc).isoformat()
     })
     
@@ -531,7 +534,17 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
         "user_id": session["therapist_id"],
         "type": "earning",
         "amount": therapist_earnings,
-        "description": f"Session with client",
+        "description": f"Earnings from session - {duration} min @ 30 coins/min",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Record admin commission
+    await db.transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": "admin",  # Special admin user ID
+        "type": "commission",
+        "amount": admin_commission,
+        "description": f"Commission from session - {duration} min @ 70 coins/min (Client: {session['client_id']}, Therapist: {session['therapist_id']})",
         "timestamp": datetime.now(timezone.utc).isoformat()
     })
     
@@ -541,7 +554,7 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
         {"$inc": {"total_sessions": 1}}
     )
     
-    return {"message": "Session ended", "coins_spent": coins_spent}
+    return {"message": "Session ended", "coins_spent": coins_spent, "therapist_earnings": therapist_earnings, "admin_commission": admin_commission}
 
 @api_router.post("/sessions/accept")
 async def accept_session(session_data: dict, current_user: dict = Depends(get_current_user)):
