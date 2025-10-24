@@ -165,9 +165,51 @@ const TherapistDashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Call declined');
+      setShowIncomingCall(null);
       fetchActiveSessions();
     } catch (error) {
       toast.error('Failed to decline call');
+    }
+  };
+
+  const handleAcceptCallFromModal = async () => {
+    if (!showIncomingCall) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/sessions/accept`, {
+        session_id: showIncomingCall.id
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setShowIncomingCall(null);
+      toast.success('Call accepted - joining now');
+      navigate(`/video-call/${showIncomingCall.id}`);
+    } catch (error) {
+      toast.error('Failed to accept call');
+      setShowIncomingCall(null);
+    }
+  };
+
+  const handleDeclineCallFromModal = async () => {
+    if (!showIncomingCall) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/sessions/decline`, {
+        session_id: showIncomingCall.id,
+        reason: "Therapist declined"
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setShowIncomingCall(null);
+      toast.success('Call declined');
+      fetchActiveSessions();
+    } catch (error) {
+      toast.error('Failed to decline call');
+      setShowIncomingCall(null);
     }
   };
 
