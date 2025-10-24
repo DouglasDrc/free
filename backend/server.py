@@ -39,7 +39,7 @@ TWILIO_API_KEY = os.getenv("TWILIO_API_KEY_SID")
 TWILIO_API_SECRET = os.getenv("TWILIO_API_KEY_SECRET")
 
 # Initialize Twilio client
-twilio_client = TwilioClient(TWILIO_API_KEY, TWILIO_API_SECRET, TWILIO_ACCOUNT_SID)
+twilio_client = TwilioClient(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
