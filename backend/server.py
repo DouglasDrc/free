@@ -124,7 +124,7 @@ class SessionStart(BaseModel):
 
 class SessionEnd(BaseModel):
     session_id: str
-    duration_minutes: int
+    duration_minutes: Optional[int] = None  # Optional - backend calculates from therapist_joined_time
 
 class SessionDecline(BaseModel):
     session_id: str
