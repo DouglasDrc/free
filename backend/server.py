@@ -256,6 +256,16 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
 async def get_balance(current_user: dict = Depends(get_current_user)):
     return {"coins": current_user.get("coins", 0)}
 
+@api_router.get("/transactions/history")
+async def get_transaction_history(current_user: dict = Depends(get_current_user)):
+    """Get user's transaction history"""
+    transactions = await db.transactions.find(
+        {"user_id": current_user["id"]},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(50).to_list(50)
+    
+    return transactions
+
 @api_router.patch("/users/me")
 async def update_user_profile(update_data: UserUpdate, current_user: dict = Depends(get_current_user)):
     """Update user profile (name, email, phone)"""
