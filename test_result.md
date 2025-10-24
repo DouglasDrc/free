@@ -177,7 +177,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Coin deduction on session end"
     - "Twilio Video call integration"
   stuck_tasks: []
   test_all: false
