@@ -49,6 +49,7 @@ class UserBase(BaseModel):
     email: EmailStr
     name: str
     role: str  # client, therapist, admin
+    phone: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
