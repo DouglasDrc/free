@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from '../components/ui/switch';
 import { toast } from 'sonner';
 import { Video, LogOut, Wallet, TrendingUp, Users, Clock, Phone, X } from 'lucide-react';
+import IncomingCallModal from '../components/IncomingCallModal';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
