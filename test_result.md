@@ -137,11 +137,11 @@ backend:
 
   - task: "Coin deduction on session end"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "user"
@@ -149,6 +149,9 @@ backend:
         - working: "NA"
           agent: "main"
           comment: "CRITICAL BUG FIXED: Found that coins were being deducted from current_user (whoever ends session) instead of always from client. If therapist ended session, therapist would lose coins! Fixed line 408 to use session['client_id'] instead of current_user['id']. Also fixed transaction record on line 421. Backend auto-reloaded. Needs testing to verify: 1) Client ending session deducts from client, 2) Therapist ending session still deducts from client, 3) Correct amount calculated based on duration and therapist rates."
+        - working: true
+          agent: "testing"
+          comment: "CRITICAL BUG FIX VERIFIED: Comprehensive testing completed successfully. ✅ Client ending session: Coins correctly deducted from client (750 coins for 5min at 150/min rate), therapist earned 150 coins (30/min). ✅ CRITICAL TEST PASSED: Therapist ending session still deducts from CLIENT (450 coins for 3min), NOT from therapist. ✅ Transaction records created correctly with proper user_ids and types (deduction for client, earning for therapist). ✅ Calculations accurate based on therapist call_rate and fixed 30 coins/min for therapist earnings. The fix is working perfectly - coins always deducted from session['client_id'] regardless of who ends the session."
 
 frontend:
   - task: "Twilio Video call integration"
