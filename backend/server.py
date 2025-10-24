@@ -443,6 +443,39 @@ async def end_session(session_data: SessionEnd, current_user: dict = Depends(get
     
     return {"message": "Session ended", "coins_spent": coins_spent}
 
+@api_router.post("/sessions/accept")
+async def accept_session(session_data: dict, current_user: dict = Depends(get_current_user)):
+    """Therapist accepts and joins the session - billing starts from this point"""
+    if current_user["role"] != "therapist":
+        raise HTTPException(status_code=403, detail="Only therapists can accept sessions")
+    
+    session_id = session_data.get("session_id")
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    if session["therapist_id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if session["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Session is not in pending state")
+    
+    # Mark when therapist joins - billing starts NOW
+    therapist_joined_time = datetime.now(timezone.utc).isoformat()
+    
+    await db.sessions.update_one(
+        {"id": session_id},
+        {"$set": {
+            "therapist_joined_time": therapist_joined_time,
+            "status": "active"
+        }}
+    )
+    
+    return {
+        "message": "Session accepted",
+        "therapist_joined_time": therapist_joined_time
+    }
+
 @api_router.post("/sessions/decline")
 async def decline_session(decline_data: SessionDecline, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "therapist":
