@@ -135,6 +135,21 @@ backend:
           agent: "testing"
           comment: "TESTED SUCCESSFULLY: Token generation endpoint working perfectly. Tested with both client and therapist authentication. Returns valid JWT tokens with proper Twilio video grants, room names, and user identity. Authentication properly enforced - rejects requests without JWT tokens. Token structure verified and contains all required fields: jti, grants.video.room, identity, iss, exp, nbf, sub."
 
+  - task: "Coin deduction on session end"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "User reported coin deduction not working"
+        - working: "NA"
+          agent: "main"
+          comment: "CRITICAL BUG FIXED: Found that coins were being deducted from current_user (whoever ends session) instead of always from client. If therapist ended session, therapist would lose coins! Fixed line 408 to use session['client_id'] instead of current_user['id']. Also fixed transaction record on line 421. Backend auto-reloaded. Needs testing to verify: 1) Client ending session deducts from client, 2) Therapist ending session still deducts from client, 3) Correct amount calculated based on duration and therapist rates."
+
 frontend:
   - task: "Twilio Video call integration"
     implemented: true
