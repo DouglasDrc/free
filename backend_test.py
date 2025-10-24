@@ -614,6 +614,135 @@ class MindConnectAPITester:
             return True
         return False
 
+    def test_transaction_records(self):
+        """Test that transaction records are created correctly"""
+        if not self.client_token or not self.therapist_token:
+            print("   Missing required tokens")
+            return False
+
+        print("\n🔍 Testing Transaction Records...")
+        
+        # Get client transactions before session
+        success, client_transactions_before = self.run_test(
+            "Get Client Transactions (Before)",
+            "GET",
+            "coins/transactions",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        # Get therapist transactions before session
+        success, therapist_transactions_before = self.run_test(
+            "Get Therapist Transactions (Before)",
+            "GET",
+            "coins/transactions",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to get initial transaction records")
+            return False
+
+        client_tx_count_before = len(client_transactions_before)
+        therapist_tx_count_before = len(therapist_transactions_before)
+
+        # Get user IDs
+        client_id = self.get_user_id_from_token(self.client_token)
+        therapist_id = self.get_user_id_from_token(self.therapist_token)
+
+        # Start and end a session
+        success, response = self.run_test(
+            "Start Session (Transaction Test)",
+            "POST",
+            "sessions/start",
+            200,
+            data={
+                "therapist_id": therapist_id,
+                "session_type": "call"
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        if not success or 'session_id' not in response:
+            print("   Failed to start session")
+            return False
+
+        session_id = response['session_id']
+
+        # End session
+        success, response = self.run_test(
+            "End Session (Transaction Test)",
+            "POST",
+            "sessions/end",
+            200,
+            data={
+                "session_id": session_id,
+                "duration_minutes": 2
+            },
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+
+        if not success:
+            print("   Failed to end session")
+            return False
+
+        # Get client transactions after session
+        success, client_transactions_after = self.run_test(
+            "Get Client Transactions (After)",
+            "GET",
+            "coins/transactions",
+            200,
+            headers={'Authorization': f'Bearer {self.client_token}'}
+        )
+        
+        # Get therapist transactions after session
+        success, therapist_transactions_after = self.run_test(
+            "Get Therapist Transactions (After)",
+            "GET",
+            "coins/transactions",
+            200,
+            headers={'Authorization': f'Bearer {self.therapist_token}'}
+        )
+
+        if not success:
+            print("   Failed to get final transaction records")
+            return False
+
+        client_tx_count_after = len(client_transactions_after)
+        therapist_tx_count_after = len(therapist_transactions_after)
+
+        # Verify new transactions were created
+        client_new_tx = client_tx_count_after - client_tx_count_before
+        therapist_new_tx = therapist_tx_count_after - therapist_tx_count_before
+
+        print(f"   Client transactions: {client_tx_count_before} -> {client_tx_count_after} (+{client_new_tx})")
+        print(f"   Therapist transactions: {therapist_tx_count_before} -> {therapist_tx_count_after} (+{therapist_new_tx})")
+
+        # Check if transactions were created (should be at least 1 for each)
+        if client_new_tx >= 1 and therapist_new_tx >= 1:
+            # Check the latest transactions
+            latest_client_tx = client_transactions_after[0] if client_transactions_after else None
+            latest_therapist_tx = therapist_transactions_after[0] if therapist_transactions_after else None
+
+            if latest_client_tx and latest_therapist_tx:
+                print(f"   Latest client transaction: {latest_client_tx['type']} - {latest_client_tx['amount']} coins")
+                print(f"   Latest therapist transaction: {latest_therapist_tx['type']} - {latest_therapist_tx['amount']} coins")
+                
+                # Verify transaction types
+                if latest_client_tx['type'] == 'deduction' and latest_therapist_tx['type'] == 'earning':
+                    print("✅ Transaction records created correctly")
+                    return True
+                else:
+                    print("❌ Incorrect transaction types")
+                    return False
+            else:
+                print("❌ Failed to get latest transactions")
+                return False
+        else:
+            print("❌ No new transactions created")
+            return False
+
 def main():
     print("🚀 Starting MindConnect Coin Deduction Fix Tests...")
     tester = MindConnectAPITester()
