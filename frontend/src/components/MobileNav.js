@@ -23,6 +23,13 @@ const MobileNav = ({ user, balance, onLogout, showRecharge, onRechargeClick, onE
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-3">
+            {user && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg">
+                <UserIcon className="w-4 h-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">{user.name}</span>
+              </div>
+            )}
+            
             <Button onClick={() => navigate('/faq')} variant="ghost" size="sm">
               <HelpCircle className="w-4 h-4 mr-2" />
               FAQ
@@ -46,6 +53,13 @@ const MobileNav = ({ user, balance, onLogout, showRecharge, onRechargeClick, onE
               <Button onClick={onRechargeClick} size="sm" className="bg-green-600 hover:bg-green-700">
                 <Wallet className="w-4 h-4 mr-2" />
                 Recharge
+              </Button>
+            )}
+            
+            {onEditProfile && (
+              <Button onClick={onEditProfile} variant="outline" size="sm">
+                <UserIcon className="w-4 h-4 mr-2" />
+                Edit Profile
               </Button>
             )}
             
