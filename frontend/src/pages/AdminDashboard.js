@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { toast } from 'sonner';
 import { Video, LogOut, Users, DollarSign, Activity, TrendingUp, UserPlus, Trash2 } from 'lucide-react';
+import CallHistory from '../components/CallHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
