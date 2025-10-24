@@ -370,11 +370,11 @@ agent_communication:
 frontend:
   - task: "Twilio Video call integration"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/VideoCall.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "user"
@@ -382,14 +382,17 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Backend Twilio client fixed. Frontend uses twilio-video SDK to connect to rooms. Needs end-to-end testing."
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL ISSUE FOUND: ✅ Client login working, call initiation successful (POST /api/sessions/start returns 200). ✅ Video call page loads correctly with end call button visible and clickable. ❌ CRITICAL BUG: End call button click does NOT trigger /api/sessions/end API call. ❌ No 'Call ended' toast notification appears. ❌ No redirect to dashboard after end call. ❌ Session cleanup happens via page unload events but not via button click. The handleEndCall function in VideoCall.js is not properly connected to the end call button or has a blocking issue preventing API execution."
 
   - task: "Therapist notification for incoming calls"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/TherapistDashboard.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "user"
@@ -397,6 +400,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "IMPROVED NOTIFICATION SYSTEM: Changed from tracking session count to tracking session IDs using Set. Now properly detects NEW sessions by ID comparison. Filters for 'pending' status only (incoming calls). Shows toast notification with client name for each new call. Plays audio notification. Position set to top-center. Frontend hot-reloaded. The logic now: 1) Polls every 5 seconds, 2) Compares current session IDs with previous, 3) Finds pending sessions not in previous set, 4) Shows notification for each new incoming call. Needs testing with real call flow."
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL AUTHENTICATION ISSUE: ❌ Therapist login fails - both client and therapist credentials redirect to /client dashboard instead of role-based routing. ❌ Cannot access TherapistDashboard to test notification system. ❌ No /sessions/active API polling detected (0 requests in 10 seconds). ❌ IncomingCallModal component not found in DOM. ❌ Key dashboard elements missing (online toggle, dashboard title, earnings card). ROOT CAUSE: Authentication/routing system not properly handling therapist role - therapist@test.com login redirects to client dashboard instead of /therapist. This prevents testing of the entire notification system."
 
   - task: "End call functionality"
     implemented: true
