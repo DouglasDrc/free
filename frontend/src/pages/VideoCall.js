@@ -248,11 +248,10 @@ const VideoCall = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const durationMinutes = Math.ceil(callDuration / 60);
       
+      // Backend will calculate duration based on therapist_joined_time
       await axios.post(`${API}/sessions/end`, {
-        session_id: sessionId,
-        duration_minutes: durationMinutes
+        session_id: sessionId
       }, { headers: { Authorization: `Bearer ${token}` } });
       
       cleanupTwilio();
