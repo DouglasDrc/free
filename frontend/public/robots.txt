@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Primary SEO landing pages
+Allow: /buy-instagram-followers.html
+Allow: /buy-instagram-followers
+
+Sitemap: https://nexapanel.com/sitemap.xml
