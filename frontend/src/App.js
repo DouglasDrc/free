@@ -13,6 +13,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import VideoCall from './pages/VideoCall';
 import FAQ from './pages/FAQ';
 import Support from './pages/Support';
+import SmmPanel from './pages/SmmPanel';
 import './App.css';
 
 function App() {
@@ -26,6 +27,10 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/smm-panel" element={<SmmPanel />} />
+          <Route path="/instagram-followers" element={<SmmPanel />} />
+          <Route path="/youtube-views" element={<SmmPanel />} />
+          <Route path="/tiktok-followers" element={<SmmPanel />} />
           
           {/* Protected Routes with Role-Based Access */}
           <Route 
